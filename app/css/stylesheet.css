@@ -1,0 +1,97 @@
+body {
+	background: #2a2a2b;
+}
+
+g.highcharts-label.highcharts-tooltip-box>text>tspan {
+	fill: white;
+}
+
+#fitnessGraph {
+	background: #2a2a2b;
+	position: absolute;
+	width: 50%;
+	height: 50%;
+	top: 0px;
+	border-top: 50px;
+}
+
+#diversityGraph {
+	background: #2a2a2b;
+	 position: absolute;
+	 width: 50%;
+	 height: 50%;
+	 bottom: 0px;
+	 border-top: 50px;
+ }
+
+#historyGraph {
+	background: #2a2a2b;
+	position: absolute;
+	width: 50%;
+	height: 50%;
+	bottom: 0px;
+	right: 0px;
+	border-top: 50px;
+}
+
+#userInterface {
+	background: #2a2a2b;
+	position: absolute;
+	width: 50%;
+	height: 50%;
+	top: 0px;
+	right: 0px;
+	border-bottom: 50px;
+}
+
+#controlMenu {
+	position: absolute;
+	padding-left: 38px;
+	padding-right: 38px;
+	width: 100%;
+	height: 16%;
+}
+
+#controlMenu>.btn {
+	margin-top: 5%;
+	width: 98.65%;
+	height: 100%;
+}
+
+#controlMenu>.btn-group {
+	width: 100%;
+	height: 100%;
+}
+
+#controlMenu>.btn-group>.btn {
+	margin-top: 5%;
+	width: 33%;
+	height: 100%;
+}
+
+#simulationPreview {
+	position: absolute;
+	margin-bottom: 30px;
+	bottom: 0px;
+	width: 100%;
+	height: 42%;
+	/*margin-top: 35%;
+	width: 100%;
+	height: 50%;*/
+}
+
+#simulationPreview>img {
+	width: 32%;
+}
+
+#generationSelect {
+	position: absolute;
+	bottom: 0px;
+	padding-left: 30px;
+	padding-right: 30px;
+	width: 100%;
+}
+
+#generationSelect>.slider.slider-horizontal {
+	width: 100%;
+}

@@ -1,0 +1,11 @@
+{
+  "name": "evosim",
+  "productName": "EvoSim",
+  "version": "0.1.0",
+  "main": "js/main.js",
+  "dependencies": {
+    "highcharts": "latest",
+    "electron": "latest",
+    "jquery": "latest"
+  }
+}

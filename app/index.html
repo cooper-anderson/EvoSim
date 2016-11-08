@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Evolution Simulator</title>
+		<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+		<link rel="stylesheet" href="css/stylesheet.css">
+		<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+		<script>if (typeof module === 'object') {window.module = module; module = undefined;}</script>
+		<script>const Highcharts = require("./js/highcharts");</script>
+		<script src="https://code.highcharts.com/modules/boost.js"></script>
+		<script src="./themes/dark-unica.js"></script>
+
+		<link rel="stylesheet" href="bootstrap/css/bootstrap.css">
+		<link rel="stylesheet" href="slider/css/bootstrap-slider.css">
+		<script src="bootstrap/js/bootstrap.js"></script>
+		<script src="slider/bootstrap-slider.js"></script>
+		<script>if (window.module) module = window.module;</script>
+	</head>
+	<body>
+		<div id="fitnessGraph"></div>
+		<div id="diversityGraph"></div>
+		<div id="historyGraph"></div>
+		<div id="userInterface">
+			<!--button onclick="cont = !cont; generationSlider.enabled = !generationSlider.enabled; $('#generationSlider').slider('refresh');">Pause</button-->
+			<div id="controlMenu">
+				<button type="button" class="btn btn-lg btn-primary">Top</button>
+				<div class="btn-group" role="group" aria-label="...">
+					<button type="button" class="btn btn-lg btn-primary">Left</button>
+					<button type="button" class="btn btn-lg btn-primary">Middle</button>
+					<button type="button" class="btn btn-lg btn-primary">Right</button>
+				</div>
+			</div>
+			<div id="simulationPreview">
+				<img src="pictures/Creature1.png">
+				<img src="pictures/Creature2.png">
+				<img src="pictures/Creature3.png">
+			</div>
+			<div id="generationSelect">
+				<input id="generationSlider" type="text" data-slider-min="0" data-slider-max="0" data-slider-step="1">
+			</div>
+		</div>
+		<!--button style="position: absolute; right: 0;" onclick="fitness.options.chart.animation = !fitness.options.chart.animation; diversity.options.chart.animation = !diversity.options.chart.animation;">Animations</button-->
+	</body>
+	<script>
+		$("#generationSlider").slider({
+			value: 0,
+			enabled: false,
+			tooltip: 'always'
+		});
+		var generationSlider = $("#generationSlider").slider("getAttribute")
+		$("#generationSlider").on("slide", function(slideEvt) {
+			generationSlider = $("#generationSlider").slider("getAttribute")
+			$("#generationSliderVal").text(slideEvt.value);
+		});
+	</script>
+	<script src="js/index.js"></script>
+</html>
