@@ -12,8 +12,6 @@ function createWindow() {
 	// Create the browser window.
 	win = new BrowserWindow({width: 800, height: 600});
 
-	//BrowserWindow.addDevToolsExtension("/Users/cooperanderson/Library/Application\ Support/Google/Chrome\ Canary/Default/Extensions/bomhdjeadceaggdgfoefmpeafkjhegbo/2.1.7_0");
-
 	// and load the index1.html of the app.
 	//noinspection JSUnresolvedVariable
 	win.loadURL(`file://${__dirname}/../index.html`);
