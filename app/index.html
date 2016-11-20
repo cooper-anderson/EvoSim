@@ -18,35 +18,146 @@
 		<script>if (window.module) module = window.module;</script>
 	</head>
 	<body>
+		<div class="titlebar">
+			<style>
+				.app, .callout-backdrop, .connecting, .titlebar {
+					position: absolute;
+					top: 0;
+					left: 0
+				}
+				.titlebar {
+					-webkit-app-region: drag;
+					pointer-events: none;
+					height: 25px;
+					width: 100%;
+					z-index: 3000
+				}
+				.titlebar button {
+					-webkit-app-region: no-drag
+				}
+				.osx-buttons, .win-buttons {
+					position: absolute;
+					pointer-events: auto
+				}
+
+				.osx-buttons {
+					top: 6px;
+					left: 13px;
+					text-align: center;
+					cursor: default !important;
+				}
+
+				.osx-buttons.osx-buttons-notice {
+					top: 50px
+				}
+
+				.osx-buttons button {
+					outline:none !important;
+					border: none !important;
+					width: 12px;
+					height: 12px;
+					-webkit-border-radius: 6px;
+					border-radius: 6px;
+					-webkit-background-clip: padding;
+					-moz-background-clip: padding;
+					background-clip: padding-box;
+					background-color: #535559;
+					-webkit-transition: background-color .2s;
+					-moz-transition: background-color .2s;
+					-o-transition: background-color .2s;
+					-ms-transition: background-color .2s;
+					transition: background-color .2s;
+					opacity: .7;
+					-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=70)";
+					filter: alpha(opacity=70);
+					border: 0;
+				}
+
+				.osx-buttons button:hover {
+					opacity: 1;
+					-ms-filter: none;
+					filter: none;
+				}
+
+				.osx-buttons button + button {
+					margin-left: 4px;
+				}
+
+				:hover .osx-close {
+					background-color: #fb615b !important
+				}
+
+				:hover .osx-minimize {
+					background-color: #fdbd41 !important
+				}
+
+				:hover .osx-maximize {
+					background-color: #33c749 !important
+				}
+
+				:hover .osx-reload {
+					background-color: #00aff7 !important
+				}
+
+				:hover .osx-test1 {
+					background-color: #E040FB !important
+				}
+
+				:hover .osx-test2 {
+					background-color: #607D8B !important
+				}
+			</style>
+			<div class="osx-buttons">
+				<button class="osx-close"></button>
+				<button class="osx-minimize"></button>
+				<button class="osx-maximize"></button>
+				<button class="osx-reload"></button>
+				<button class="osx-test1" onclick='location = "testing.html"'></button>
+			</div>
+			<script>
+				const electron = require("electron");
+				$(".osx-close").on("click", function() {
+					electron.remote.getCurrentWindow().destroy();
+				})
+				$(".osx-minimize").on("click", function() {
+					electron.remote.getCurrentWindow().minimize();
+				})
+				$(".osx-maximize").on("click", function() {
+					electron.remote.getCurrentWindow().setFullScreen(!electron.remote.getCurrentWindow().isFullScreen());
+				})
+				$(".osx-reload").on("click", function() {
+					electron.remote.getCurrentWindow().reload();
+				})
+			</script>
+		</div>
 		<div id="fitnessGraph"></div>
 		<div id="diversityGraph"></div>
 		<div id="historyGraph"></div>
 		<div id="userInterface">
-			<!--button onclick="cont = !cont; generationSlider.enabled = !generationSlider.enabled; $('#generationSlider').slider('refresh');">Pause</button-->
 			<div id="controlMenu">
-				<button type="button" class="btn btn-lg btn-primary">Top</button>
+				<button id="run" type="button" class="btn btn-lg btn-primary">Run Simulation</button>
 				<div class="btn-group" role="group" aria-label="...">
-					<button type="button" class="btn btn-lg btn-primary">Left</button>
-					<button type="button" class="btn btn-lg btn-primary">Middle</button>
-					<button type="button" class="btn btn-lg btn-primary">Right</button>
+					<button id="quick" type="button" class="btn btn-lg btn-primary">Quick</button>
+					<button id="fast" type="button" class="btn btn-lg btn-primary">Fast</button>
+					<button id="loop" type="button" class="btn btn-lg btn-primary">Loop</button>
 				</div>
 			</div>
 			<div id="simulationPreview">
-				<img src="pictures/Creature1.png">
-				<img src="pictures/Creature2.png">
-				<img src="pictures/Creature3.png">
+				<div id="canvas1"></div>
+				<div id="canvas2"></div>
+				<div id="canvas3"></div>
 			</div>
 			<div id="generationSelect">
 				<input id="generationSlider" type="text" data-slider-min="0" data-slider-max="0" data-slider-step="1">
 			</div>
 		</div>
-		<!--button style="position: absolute; right: 0;" onclick="fitness.options.chart.animation = !fitness.options.chart.animation; diversity.options.chart.animation = !diversity.options.chart.animation;">Animations</button-->
 	</body>
 	<script>
 		$("#generationSlider").slider({
 			value: 0,
-			enabled: false,
-			tooltip: 'always'
+			enabled: true,
+			tooltip: 'always',
+			tooltip_position: "bottom"
 		});
 		var generationSlider = $("#generationSlider").slider("getAttribute")
 		$("#generationSlider").on("slide", function(slideEvt) {
@@ -54,5 +165,6 @@
 			$("#generationSliderVal").text(slideEvt.value);
 		});
 	</script>
+	<script src="js/evosim.js"></script>
 	<script src="js/index.js"></script>
 </html>

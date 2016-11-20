@@ -1,6 +1,7 @@
 /**
  * Created by Cooper Anderson on 11/6/16 AD.
  */
+
 datas = {
 	C3: [Math.round(Math.random() * 100)],
 	C6: [Math.round(Math.random() * 100)],
@@ -143,31 +144,49 @@ $(function() {
 })
 
 removal = setInterval(function() {if ($(".highcharts-credits").length) {$(".highcharts-credits").remove(); clearInterval(removal)}});
-var fitness, diversity, histogram, cont = false;
+var fitness, diversity, histogram, cont = false, play = false, reset = false;
 fitnessInverval = setInterval(function() {
 	if ($("#fitnessGraph").children().length) {
 		fitness = $("#fitnessGraph").highcharts();
 		fitness.options.chart.animation = true;
 		clearInterval(fitnessInverval);
-		cont = true;
+		cont = false;
 	}
 });
 diversityInverval = setInterval(function() {
 	if ($("#diversityGraph").children().length) {
 		diversity = $("#diversityGraph").highcharts();
 		clearInterval(diversityInverval);
-		cont = true;
+		cont = false;
 	}
 });
 historyInterval = setInterval(function() {
 	if ($("#historyGraph").children().length) {
 		histogram = $("#historyGraph").highcharts();
 		clearInterval(historyInterval);
-		cont = true;
+		cont = false;
 	}
 });
 time = 0
 
+$("#run").on("click", function(event) {
+	play = !play;
+});
+
+$("#loop").on("click", function(event) {
+	cont = !cont;
+	generationSlider.enabled = !generationSlider.enabled;
+	$("#generationSlider").slider("refresh");
+	$("#loop").toggleClass("active");
+});
+
+$("#fast").on("click", function(event) {
+	reset = true;
+})
+
+$(".btn").on("click", function(event) {
+	$(this).blur();
+})
 
 setInterval(function() {
 	if (cont) {
@@ -190,7 +209,6 @@ setInterval(function() {
 		if (generationSlider.value == generationSlider.max - 1) {
 			generationSlider.value++;
 		}
-		console.log(generationSlider.value);
 		$("#generationSlider").slider("refresh");
 		/*if (sliderData.value == sliderData.max - 1) {
 			sliderData.value ++;
@@ -202,3 +220,69 @@ setInterval(function() {
 		//$("#generationSlider").slider("refresh");
 	}
 }, 1000);
+
+a = new Creature();
+aSigma = new sigma({
+	renderer: {
+		container: document.getElementById('canvas1'),
+		type: 'canvas'
+	},
+	settings: {
+		doubleClickEnabled: false,
+		autoRescale: false
+	}
+});
+a.Draw(aSigma);
+
+b = new Creature();
+bSigma = new sigma({
+	renderer: {
+		container: document.getElementById('canvas2'),
+		type: 'canvas'
+	},
+	settings: {
+		doubleClickEnabled: false,
+		autoRescale: false
+	}
+});
+b.Draw(bSigma);
+
+c = new Creature();
+cSigma = new sigma({
+	renderer: {
+		container: document.getElementById('canvas3'),
+		type: 'canvas'
+	},
+	settings: {
+		doubleClickEnabled: false,
+		autoRescale: false
+	}
+});
+c.Draw(cSigma);
+
+function norm() {
+	a.Update();
+	a.Draw(aSigma);
+	b.Update();
+	b.Draw(bSigma);
+	c.Update();
+	c.Draw(cSigma);
+}
+
+interval = setInterval(function() {
+	if (play) {
+		norm();
+		if (![a.IsGrounded(), b.IsGrounded(), c.IsGrounded()].includes(false) || reset) {
+			reset = false;
+			a = new Creature();
+			b = new Creature();
+			c = new Creature();
+		}
+
+	}
+}, 1000 / simulator.frameRate)
+
+/*for (var i = 0; i < simulator.frameRate * 15 * 100; i++) {
+	b.Update();
+	b.Draw(bSigma);
+}*/

@@ -10,7 +10,7 @@ let win;
 
 function createWindow() {
 	// Create the browser window.
-	win = new BrowserWindow({width: 800, height: 600});
+	win = new BrowserWindow({width: 800, height: 600, backgroundColor: "#2a2a2b", frame: false/*titleBarStyle: "hidden-inset"*/});
 
 	// and load the index1.html of the app.
 	//noinspection JSUnresolvedVariable

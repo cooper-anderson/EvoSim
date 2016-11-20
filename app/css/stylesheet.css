@@ -1,5 +1,7 @@
 body {
-	background: #2a2a2b;
+	background: #2a2a2b !important;
+	width: 100%;
+	height: 100%;
 }
 
 g.highcharts-label.highcharts-tooltip-box>text>tspan {
@@ -80,8 +82,14 @@ g.highcharts-label.highcharts-tooltip-box>text>tspan {
 	height: 50%;*/
 }
 
-#simulationPreview>img {
-	width: 32%;
+#simulationPreview>canvas, #simulationPreview>div {
+	/*width: 31%;*/
+	height: 100%;
+	display: inline-block;
+	width: 31%;
+	border: dashed 1px black;
+	margin-left: .5%;
+	margin-right: .5%;
 }
 
 #generationSelect {
@@ -94,4 +102,11 @@ g.highcharts-label.highcharts-tooltip-box>text>tspan {
 
 #generationSelect>.slider.slider-horizontal {
 	width: 100%;
+}
+
+button.btn-primary:focus {
+	border: none !important;
+	/*box-shadow: none !important;*/
+	outline:none !important;
+	/*text-decoration: none !important;*/
 }

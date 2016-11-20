@@ -17,7 +17,13 @@ class Vector2 {
 		return new Vector2(a.x * b, a.y * b);
 	}
 	static Div(a, b) {
-		return (b == 0) ? new Vector2(a.x / b, a.y / b) : new Vector2();
+		return (b != 0) ? new Vector2(a.x / b, a.y / b) : new Vector2();
+	}
+	static Distance(a, b) {
+		return Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
+	}
+	static MultVector(a, b) {
+		return new Vector2(a.x * b.x, a.y * b.y);
 	}
 	static Rotate(vector, degrees=90) {
 		var rotated = new Vector2();
