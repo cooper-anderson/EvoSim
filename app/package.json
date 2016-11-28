@@ -1,14 +1,15 @@
 {
   "name": "evosim",
   "productName": "EvoSim",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "main": "js/main.js",
   "dependencies": {
     "highcharts": "latest",
     "electron": "latest",
     "jquery": "latest",
     "seedrandom": "latest",
-	"sigma": "latest"
+	"sigma": "latest",
+	"clone": "latest"
   },
   "repository": {
 	"type": "git",
