@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 		<meta charset="UTF-8">
-		<title>Testing</title>
+		<title>Testing2</title>
 		<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
 		<link rel="stylesheet" href="css/stylesheet.css">
 		<script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
@@ -17,17 +17,16 @@
 		<script src="slider/bootstrap-slider.js"></script>
 		<script>if (window.module) module = window.module;</script>
 		<style>
-			.container {
-				margin-top: 36px;
+			.creatureInfo {
+				margin: 16px;
+				float: right;
+				color: white;
 			}
-			td {
-				padding: 0px !important;
+			.creatureInfo>div>.creatureLabel {
+				margin-right: 20px;
 			}
-			.sigmaDiv {
-				position: relative;
-				width: 100%;
-				height: 130px;
-				margin-top: 3px;
+			.creatureInfo>div>.creatureData {
+				float: right;
 			}
 		</style>
 	</head>
@@ -126,7 +125,7 @@
 			<button class="osx-minimize"></button>
 			<button class="osx-maximize"></button>
 			<button class="osx-reload"></button>
-			<button class="osx-test1" onclick='location = "testing2.html"'></button>
+			<button class="osx-test1" onclick='location = "index.html"'></button>
 		</div>
 		<script>
 			const electron = require("electron");
@@ -144,95 +143,55 @@
 			})
 		</script>
 	</div>
-		<div class="container" valign="middle">
-			<table class="table table-bordered">
-				<tr>
-					<td><div class="sigmaDiv"></div></td>
-					<td><div class="sigmaDiv"></div></td>
-					<td><div class="sigmaDiv"></div></td>
-				</tr>
-				<tr>
-					<td><div class="sigmaDiv"></div></td>
-					<td><div class="sigmaDiv"></div></td>
-					<td><div class="sigmaDiv"></div></td>
-				</tr>
-			</table>
+		<div class="creatureInfo">
+			<div><span class="creatureLabel">ID:</span><span class="creatureData" id="creatureID">0</span></div>
+			<div><span class="creatureLabel">Species:</span><span class="creatureData" id="creatureSpecies">0</span></div>
+			<div><span class="creatureLabel">Speed:</span><span class="creatureData" id="timeScale">1</span></div>
 		</div>
-		<script src="js/evosim.js"></script>
-		<script>
-			cleanArray = function(array, deleteValue) {
-				for (var i = 0; i < array.length; i++) {
-					if (array[i] == deleteValue) {
-						array.splice(i, 1);
-						i--;
-					}
-				}
-				return array;
-			};
-
-			var canvases = [];
-			var creatures = [];
-			var scores = [];
-			var creatureOrder = [];
-			$(".sigmaDiv").each(function(index, item) {
-				$(".sigmaDiv")[index].id = `canvas${index}`;
-				canvases[index] = new sigma({
-					renderer: {
-						container: document.getElementById(`canvas${index}`),
-						type: 'canvas'
-					},
-					settings: {
-						doubleClickEnabled: false,
-						autoRescale: false
-					}
-				});
-			});
-
-			creatures[0] = new Creature();
-			creatures[0].Draw(canvases[0]);
-
-			function getGrounded() {
-				var grounded = []
-				for (var creature in creatures) {
-					grounded[creature] = (creatures[creature].IsFlatGrounded()) ? true : false;
-				}
-				return !grounded.includes(false);
-			}
-
-			function setSize(ratio) {
-				for (var i = 0; i < canvases.length; i++) {
-					canvases[i].camera.ratio = ratio
-				}
-			}
-			var count = 1;
-			var interval = setInterval(function() {
-				if (count < 1000) {
-					for (var creature in creatures) {
-						//$(`#canvas${creature}`).width($(window).width() / 3);
-						$(`#canvas${creature}`).height($(`#canvas${creature}`).width());
-						for (var i = 0; i < count; i++) {
-							creatures[creature].Update();
-						}
-						creatures[creature].Draw(canvases[creature]);
-						if (creatures[creature].IsFlatGrounded() && scores[creature] == undefined) {
-							//creatures[creature] = new Creature();
-							//scores[creature] = creatures[creature].scores.time;
-							//creatureOrder[scores[creature]] = Number(creature);
-						}
-					}
-					if (/*getGrounded()*/creatures[0].frame >= 15 * 30) {
-						for (var creature in creatures) {
-							creatures[creature] = new Creature();
-						}
-						count++;
-						console.log(count);
-						if (count2 >= limit) {
-							count++;
-							count2 = 0;
-						}
-					}
-				}
-			}, 1000 / simulator.frameRate)
-		</script>
+		<div id="simulation" style="width: 100%; height: 600px;"></div>
 	</body>
+	<script src="js/evosim.js"></script>
+	<script>
+		canvas = new sigma({
+			renderer: {
+				container: document.getElementById("simulation"),
+				type: 'canvas'
+			},
+			settings: {
+				doubleClickEnabled: false,
+				autoRescale: false
+			}
+		});;
+		canvas.camera.ratio = .01;
+		test = new Creature();
+		var timeScale = 1;
+		/*setInterval(function() {
+			if (timeScale < 1000) {
+				for (var i = 0; i < timeScale; i++) {
+					test.Update();
+				}
+				if (test.frame >= 15 * 30) {
+					test = new Creature();
+					timeScale++;
+				}
+				test.Draw(canvas);
+			}
+		}, 1000 / simulator.frameRate);*/
+		var interval = setInterval(function() {
+			$("#simulation").height($(window).width());
+			if (simulator.creatures.length <= 1000) {
+				$("#creatureID").html(simulator.creatures.length - 1);
+				$("#creatureSpecies").html(test.species);
+				for (var i = 0; i < timeScale; i++) {
+					test.Update();
+				}
+				test.Draw(canvas);
+			}
+			if (test.frame >= 15 * simulator.frameRate) {
+				test = new Creature();
+				timeScale = (Math.ceil(timeScale * 1.01) <= 1000) ? Math.ceil(timeScale * 1.01) : 1000;
+				$("#timeScale").html(timeScale);
+			}
+		}, 1000 / simulator.frameRate)
+	</script>
 </html>

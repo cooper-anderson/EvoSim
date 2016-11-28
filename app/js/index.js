@@ -58,7 +58,7 @@ $(function () {
 				animationLimit: 50
 			}
 		},
-		series: generateSeries(datas)
+		series: []
 	});
 });
 $(function () {
@@ -93,6 +93,16 @@ $(function () {
 			}
 		},
 		series: [{
+			name: 'a',
+			data: [0]
+		}, {
+			name: 'b',
+			data: [0]
+		}, {
+			name: 'c',
+			data: [0]
+		}]
+		/*series: [{
 			name: '100%',
 			data: [7.0]
 		}, {
@@ -107,7 +117,7 @@ $(function () {
 		}, {
 			name: '0%',
 			data: [1]
-		}]
+		}]*/
 	});
 });
 $(function() {
@@ -141,7 +151,7 @@ $(function() {
 			data: [29.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4]
 		}]
 	})
-})
+});
 
 removal = setInterval(function() {if ($(".highcharts-credits").length) {$(".highcharts-credits").remove(); clearInterval(removal)}});
 var fitness, diversity, histogram, cont = false, play = false, reset = false;
@@ -171,6 +181,7 @@ time = 0
 
 $("#run").on("click", function(event) {
 	play = !play;
+	create();
 });
 
 $("#loop").on("click", function(event) {
@@ -188,40 +199,52 @@ $(".btn").on("click", function(event) {
 	$(this).blur();
 })
 
-setInterval(function() {
-	if (cont) {
-		time += 1/500;
-		for (var series in fitness.series) {
-			var previous = fitness.series[series].data[fitness.series[series].data.length - 1].y;
-			var random = Math.round((Math.random() * 2)) - 1;
-			//datas[country].push((previous + random >= 0 && previous > 0) ? datas[country][i-1] + random : previous)
-			fitness.series[series].addPoint((previous + random >= 0 && previous > 0) ? previous + random : previous);
-			//fitness.series[series].addPoint(previous + (Math.sin(time * 90) * (random)));
-		}
-		for (var series in diversity.series) {
-			var previous = diversity.series[series].data[diversity.series[series].data.length - 1].y;
-			var random = Math.round((Math.random() * 2)) - 1;
-			//datas[country].push((previous + random >= 0 && previous > 0) ? datas[country][i-1] + random : previous)
-			diversity.series[series].addPoint((previous + random >= 0 && previous > 0) ? previous + random : previous)
-		}
-		//$("#generationSlider").slider("setAttribute", "max", sliderData.max + 1);
-		generationSlider.max++;
-		if (generationSlider.value == generationSlider.max - 1) {
-			generationSlider.value++;
-		}
-		$("#generationSlider").slider("refresh");
-		/*if (sliderData.value == sliderData.max - 1) {
-			sliderData.value ++;
-		} else {
-			sliderData.value = $("#generationSlider").slider("getAttribute").value;
-		}*/
-		//$("#generationSlider").slider("refresh");
-		//if (sliderData)
-		//$("#generationSlider").slider("refresh");
-	}
-}, 1000);
+var prev;
+$(".preview").on("mouseover", function() {
+	prev = this;
+	createViewWindow(this);
+})
 
-a = new Creature();
+$(".preview").on("mouseout", function() {
+	clearInterval(viewWindow.interval);
+	$("#viewWindow").remove();
+})
+
+var scale = true;
+aSigma = new sigma({
+	renderer: {
+		container: document.getElementById('canvas1'),
+		type: 'canvas'
+	},
+	settings: {
+		doubleClickEnabled: false,
+		autoRescale: scale
+	}
+});
+
+bSigma = new sigma({
+	renderer: {
+		container: document.getElementById('canvas2'),
+		type: 'canvas'
+	},
+	settings: {
+		doubleClickEnabled: false,
+		autoRescale: scale
+	}
+});
+
+cSigma = new sigma({
+	renderer: {
+		container: document.getElementById('canvas3'),
+		type: 'canvas'
+	},
+	settings: {
+		doubleClickEnabled: false,
+		autoRescale: scale
+	}
+});
+
+/*a = new Creature();
 aSigma = new sigma({
 	renderer: {
 		container: document.getElementById('canvas1'),
@@ -269,10 +292,24 @@ function norm() {
 	c.Draw(cSigma);
 }
 
+function run() {
+	a.RunSimulation();
+	a.Draw(aSigma);
+	b.RunSimulation();
+	b.Draw(bSigma);
+	c.RunSimulation();
+	c.Draw(cSigma);
+}
+
 interval = setInterval(function() {
 	if (play) {
 		norm();
-		if (![a.IsGrounded(), b.IsGrounded(), c.IsGrounded()].includes(false) || reset) {
+		if (![a.data.flatGrounded, b.data.flatGrounded, c.data.flatGrounded].includes(false) || reset) {
+			if (!reset) {
+				fitness.series[0].addPoint(a.GetFitness());
+				fitness.series[1].addPoint(b.GetFitness());
+				fitness.series[2].addPoint(c.GetFitness());
+			}
 			reset = false;
 			a = new Creature();
 			b = new Creature();
@@ -280,9 +317,119 @@ interval = setInterval(function() {
 		}
 
 	}
-}, 1000 / simulator.frameRate)
+}, 1000 / simulator.frameRate)*/
 
-/*for (var i = 0; i < simulator.frameRate * 15 * 100; i++) {
-	b.Update();
-	b.Draw(bSigma);
-}*/
+var viewWindow = {
+	sigma: undefined,
+	interval: undefined,
+	creature: undefined
+};
+function createViewWindow(preview) {
+	var mode = "big";
+	if (mode == "small") {
+		$("body").append(`<div style="
+	position: absolute;
+	color: white;
+	background-color: #2a2a2b;
+	width: ${$(preview).outerWidth()}px;
+	height: ${$(preview).outerHeight()}px;
+	left: ${$(preview).offset().left}px;
+	top: ${$(preview).offset().top + $(preview).outerHeight()}px;
+	margin-top: 1%;
+	border: dashed 1px black;
+" id="viewWindow" data-id="${$(preview).data().id}"></div>`);
+	} else {
+		$("body").append(`<div style="
+	position: absolute;
+	background-color: #2a2a2b;
+	color: white;
+	width: ${$("#historyGraph").outerWidth()}px;
+	height: ${$("#historyGraph").outerHeight()}px;
+	left: ${$("#historyGraph").offset().left}px;
+	top: ${$("#historyGraph").offset().top}px;
+	border: dashed 1px black;
+" id="viewWindow" data-id="${$(preview).data().id}"></div>`);
+	}
+	viewWindow.sigma = new sigma({
+		renderer: {
+			container: document.getElementById('viewWindow'),
+			type: 'canvas'
+		},
+		settings: {
+			doubleClickEnabled: false,
+			autoRescale: false
+		}
+	})
+	viewWindow.creature = clone(simulator.creatures[$(preview).data().id]);
+	viewWindow.creature.Normalize();
+	viewWindow.interval = setInterval(function() {
+		viewWindow.creature.Update();
+		viewWindow.creature.Draw(viewWindow.sigma);
+	}, 1000 / simulator.frameRate);
+}
+
+function getSeriesNames(graph) {
+	var names = []
+	for (var series in graph.series) {
+		names.push(graph.series[series].name);
+	}
+	return names;
+}
+
+function getSeries(graph, name) {
+	if (getSeriesNames(graph).includes(name)) {
+		for (var series in graph.series) {
+			if (graph.series[series].name == name) {
+				return graph.series[series];
+			}
+		}
+	} else {
+		return false;
+	}
+}
+
+function updateCreatures() {
+	var gen = $("#generationSlider").slider("getValue") - 1;
+	$("#canvas3").data().id = simulator.generations[gen].creatures[0].id
+	simulator.generations[gen].creatures[0].Draw(cSigma, false, false, false, 1000000);
+	$("#canvas2").data().id = simulator.generations[gen].creatures[Math.round(simulator.creature.count / 2)].id
+	simulator.generations[gen].creatures[Math.round(simulator.creature.count / 2)].Draw(bSigma, false, false, false, 1000000);
+	$("#canvas1").data().id = simulator.generations[gen].creatures[simulator.creature.count - 1].id
+	simulator.generations[gen].creatures[simulator.creature.count - 1].Draw(aSigma, false, false, false, 1000000);
+}
+
+function create() {
+	if (typeof g == "undefined") {
+		g = new Generation();
+	} else {
+		g = g.Reproduce();
+	}
+	for (var key in g.species) {
+		if (!getSeriesNames(diversity).includes(key)) {
+			diversity.addSeries({name: key, data: [0]});
+		}
+	}
+	for (var series in diversity.series) {
+		if (diversity.series[series].name in g.species) {
+			var key = diversity.series[series].name;
+			getSeries(diversity, key).addPoint(g.species[key]);
+		} else {
+			diversity.series[series].addPoint(0);
+		}
+	}
+	fitness.series[0].addPoint(Number(g.creatures[0].GetFitness().toFixed(2)));
+	fitness.series[1].addPoint(Number(g.creatures[Math.round(simulator.creature.count / 2)].GetFitness().toFixed(2)));
+	fitness.series[2].addPoint(Number(g.creatures[simulator.creature.count - 1].GetFitness().toFixed(2)));
+	generationSlider.max++;
+	if (generationSlider.value == generationSlider.max - 1) {
+		generationSlider.value++;
+	}
+	$("#generationSlider").slider("refresh");
+	updateCreatures();
+}
+
+setInterval(function() {
+	if (cont) {
+		create();
+	}
+}, 1000);

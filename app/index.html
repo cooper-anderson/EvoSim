@@ -143,9 +143,9 @@
 				</div>
 			</div>
 			<div id="simulationPreview">
-				<div id="canvas1"></div>
-				<div id="canvas2"></div>
-				<div id="canvas3"></div>
+				<div id="canvas1" class="preview"></div>
+				<div id="canvas2" class="preview"></div>
+				<div id="canvas3" class="preview"></div>
 			</div>
 			<div id="generationSelect">
 				<input id="generationSlider" type="text" data-slider-min="0" data-slider-max="0" data-slider-step="1">
@@ -163,6 +163,7 @@
 		$("#generationSlider").on("slide", function(slideEvt) {
 			generationSlider = $("#generationSlider").slider("getAttribute")
 			$("#generationSliderVal").text(slideEvt.value);
+			updateCreatures();
 		});
 	</script>
 	<script src="js/evosim.js"></script>

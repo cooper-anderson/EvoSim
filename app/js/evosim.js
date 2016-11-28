@@ -5,11 +5,17 @@
 const {Vector2} = require("./js/Vectors");
 const seedRandom = require("seedrandom");
 const sigma = require("sigma");
+const clone = require("clone");
 
 var simulator = {
 	seed: 0,//3438,
-	objective: "moveRight",
-	mutability: .1,
+	objective: function(creature) {
+		//var size = Vector2.Sub(creature.scores.maxDistance.major, creature.scores.minDistance.minor);
+		//return size.x * size.y;
+		return creature.scores.maxDistance.mass.x;
+		//return creature.scores.time;
+	},
+	mutability: .05,
 	creature: {
 		count: 1000,
 		node: {scale: 15, minimum: 3, maximum: 6},
@@ -20,6 +26,8 @@ var simulator = {
 		drawScoreLine: true
 	},
 	creatures: [],
+	generations: [],
+	generation: [],
 	physics: {
 		gravity: new Vector2(0, -9.81),
 		useGravity: true,
@@ -28,8 +36,35 @@ var simulator = {
 		frictionAir: .95
 	},
 	time: 15,
-	frameRate: 60
+	frameRate: 60,
+	species : "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
 };
+
+class Color {
+	constructor(a=0, b=0, c=0, mode="rgb") {
+		if (mode == "rgb") {
+			this.r = a;
+			this.g = b;
+			this.b = c;
+		} else if (mode == "hsl") {
+			this.h = a;
+			this.s = b;
+			this.l = c;
+		}
+	}
+	toHex() {
+		if (this.mode == "rgb") {
+			var hex = "";
+			for (var i = 0; i < this.length; i++) {
+				var current = this[i].toString(16);
+				hex += (current.length > 1) ? current : "0" + current;
+			}
+			return hex;
+		} else {
+
+		}
+	}
+}
 
 function hslToRgb(h, s, l){
 	var r, g, b;
@@ -181,8 +216,11 @@ class Muscle {
 class Creature {
 	constructor(parent=undefined) {
 		if (parent == undefined) {
+			this.id = simulator.creatures.push(this)-1;
+			this.ancestor = this.id;
 			this.nodes = [];
 			this.muscles = [];
+			this.data = {centerOfMass: new Vector2(), maxPosition: new Vector2(), minPosition: new Vector2(), mass: 0, grounded: false, flatGrounded: false};
 			this.scores = {
 				maxDistance: {
 					mass: new Vector2(),
@@ -194,21 +232,13 @@ class Creature {
 					minor: new Vector2(),
 					major: new Vector2()
 				},
-				grounded: false,
+				flatGrounded: false,
 				time: 0
 			}
 			this.frame = 0;
 			for (var node = 0; node < Math.floor(Math.random() * (simulator.creature.node.maximum - simulator.creature.node.minimum)) + simulator.creature.node.minimum; node++) {
 				this.nodes.push(new Node(new Vector2(Math.random(), Math.random()), Math.random(), Math.floor(Math.random() * 0) + 1, node));
 			}
-			/*while ((function() {
-				var nodes = [];
-				for (var muscle = 0; muscle < this.muscle.length; node++) {
-
-				}
-			})()) {
-
-			}*/
 			for (var muscle = 0; muscle < this.nodes.length; muscle++) {
 				var length = (Math.random() * 3)+.5;
 				this.muscles.push(new Muscle(
@@ -237,7 +267,16 @@ class Creature {
 				}
 				//this.muscles.push(new Muscle([this.nodes[node1], this.nodes[node2]], {length: 1, minor: .5, major: 1.5}, {}, Math.random()));
 			}
+			this.species = simulator.species[this.nodes.length - 1] + this.muscles.length;
+			this._this = clone(this);
 			this.Normalize();
+			this.RunSimulation();
+			for (var key in this._this) {
+				if (key != "scores" && key != "_this") {
+					this[key] = this._this[key];
+				}
+			}
+			delete this._this;
 		} else {
 
 		}
@@ -260,10 +299,10 @@ class Creature {
 		}
 	}
 	SetScores() {
-		var centerOfMass = this.GetCenterOfMass(), maxPosition = this.GetMaxPosition(), minPosition = this.GetMinPosition();
-		if (this.IsGrounded() && !this.scores.grounded) {
+		var centerOfMass = this.data.centerOfMass, maxPosition = this.data.maxPosition, minPosition = this.data.minPosition;
+		if (this.data.flatGrounded && !this.scores.flatGrounded) {
 			this.scores.time = this.frame;
-			this.scores.grounded = true;
+			this.scores.flatGrounded = true;
 		}
 		if (centerOfMass.x > this.scores.maxDistance.mass.x) {
 			this.scores.maxDistance.mass.x = centerOfMass.x;
@@ -309,56 +348,63 @@ class Creature {
 		for (var n in this.nodes) {
 			this.nodes[n].Update();
 		}
+		this.SetData();
 		this.SetScores();
 		this.frame++;
 	}
 	GetMass() {
-		var mass = 0;
-		for (var node in this.nodes) {
-			mass += this.nodes[node].mass;
-		}
-		return mass;
+		return this.data.mass;
 	}
 	GetCenterOfMass() {
-		var position = new Vector2();
-		this.nodes.forEach(function(item, index) {
-			position = Vector2.Add(position, Vector2.Mult(item.position, item.mass));
-		});
-		return Vector2.Div(position, this.GetMass());
-	}
-	IsGrounded() {
-		var nodes = []
-		for (var node in this.nodes) {
-			nodes[node] = (this.nodes[node].position.y > -.01 && this.nodes[node].position.y < .01) ? true : false;
-		}
-		return !nodes.includes(false);
+		return this.data.centerOfMass;
 	}
 	GetMaxPosition() {
-		var position = this.GetCenterOfMass();
-		for (var node in this.nodes) {
-			if (this.nodes[node].position.x > position.x) {
-				position.x = this.nodes[node].position.x;
-			}
-			if (this.nodes[node].position.y > position.y) {
-				position.y = this.nodes[node].position.y;
-			}
-		}
-		return position;
+		return this.data.maxPosition;
 	}
 	GetMinPosition() {
-		var position = this.GetCenterOfMass();
+		return this.data.minPosition;
+	}
+	IsGrounded() {
+		return this.data.grounded;
+	}
+	IsFlatGrounded() {
+		return this.data.flatGrounded;
+	}
+	GetData() {
+		var data = {centerOfMass: new Vector2(), maxPosition: new Vector2(), minPosition: new Vector2(), mass: 0, grounded: false, flatGrounded: false};
+		var groundStatus = [];
 		for (var node in this.nodes) {
-			if (this.nodes[node].position.x < position.x) {
-				position.x = this.nodes[node].position.x;
+			data.mass += this.nodes[node].mass;
+			data.centerOfMass = Vector2.Add(data.centerOfMass, Vector2.Mult(this.nodes[node].position, this.nodes[node].mass));
+			data.maxPosition = Vector2.Add(data.maxPosition, Vector2.Mult(this.nodes[node].position, this.nodes[node].mass));
+			data.minPosition = Vector2.Add(data.minPosition, Vector2.Mult(this.nodes[node].position, this.nodes[node].mass));
+			groundStatus[node] = (this.nodes[node].position.y > -.01 && this.nodes[node].position.y < .01) ? true : false;
+		}
+		data.centerOfMass = Vector2.Div(data.centerOfMass, data.mass);
+		data.maxPosition = Vector2.Div(data.maxPosition, data.mass);
+		data.minPosition = Vector2.Div(data.minPosition, data.mass);
+		data.grounded = groundStatus.includes(true); data.flatGrounded = !groundStatus.includes(false);
+		for (var node in this.nodes) {
+			if (this.nodes[node].position.x > data.maxPosition.x) {
+				data.maxPosition.x = this.nodes[node].position.x;
 			}
-			if (this.nodes[node].position.y < position.y) {
-				position.y = this.nodes[node].position.y;
+			if (this.nodes[node].position.y > data.maxPosition.y) {
+				data.maxPosition.y = this.nodes[node].position.y;
+			}
+			if (this.nodes[node].position.x < data.minPosition.x) {
+				data.minPosition.x = this.nodes[node].position.x;
+			}
+			if (this.nodes[node].position.y < data.minPosition.y) {
+				data.minPosition.y = this.nodes[node].position.y;
 			}
 		}
-		return position;
+		return data;
+	}
+	SetData() {
+		this.data = this.GetData();
 	}
 	DrawGrid(canvas) {
-		var pos = this.GetCenterOfMass();
+		var pos = this.data.centerOfMass;
 		var lines = new Vector2(Math.ceil(canvas.renderers[0].height * canvas.camera.ratio), Math.ceil(canvas.renderers[0].width * canvas.camera.ratio));
 		var size = 20;
 		var offset = new Vector2(-15, -15);
@@ -407,67 +453,72 @@ class Creature {
 			});
 		}
 	}
-	Draw(canvas, drawGrid=true) {
+	Draw(canvas, drawGrid=true, drawLines=true, drawMass=true, zoom=.1) {
 		canvas.graph.clear();
-		var position = this.GetCenterOfMass();
+		var position = this.data.centerOfMass;
 		var lines = new Vector2(Math.ceil(canvas.renderers[0].height * canvas.camera.ratio), Math.ceil(canvas.renderers[0].width * canvas.camera.ratio));
 		var offset = new Vector2(-15, -15);
 		var size = 20;
-		canvas.camera.goTo({x: position.x, y: -position.y, angle: 0, ratio: (canvas.camera.ratio > .1) ? 0.04 : canvas.camera.ratio});
-		canvas.graph.addNode({
-			id: "n01",
-			x: position.x, y: -position.y,
-			size: .1,
-			color: `#${hslToHex(207/360, 89.7/100, .5)}`
-		});
-		[
-			{name: "mass", position: this.scores.maxDistance.mass, condition: true, color: "#844336"},
-			{name: "min", position: this.scores.minDistance.minor, condition: true, color: "#8F7B3B"},
-			{name: "max", position: this.scores.maxDistance.major, condition: true, color: "#213683"}
-		].forEach(function(item, index) {
-			if (item.condition) {
-				canvas.graph.addNode({
-					id: `xScore-${item.name}-0`,
-					x: item.position.x,
-					y: -(position.y + (lines.y / 2) - offset.y),
-					size: size,
-					color: "#2a2a2b"
-				});
-				canvas.graph.addNode({
-					id: `xScore-${item.name}-1`,
-					x: item.position.x,
-					y: -(position.y - (lines.y / 2) + offset.y),
-					size: size,
-					color: "#2a2a2b"
-				});
-				canvas.graph.addEdge({
-					id: `xScore-${item.name}-`,
-					source: `xScore-${item.name}-0`,
-					target: `xScore-${item.name}-1`,
-					color: item.color
-				});
-				canvas.graph.addNode({
-					id: `yScore-${item.name}-0`,
-					x: (position.x + (lines.x / 2) - offset.x),
-					y: -item.position.y,
-					size: size,
-					color: "#2a2a2b"
-				});
-				canvas.graph.addNode({
-					id: `yScore-${item.name}-1`,
-					x: (position.x - (lines.x / 2) + offset.x),
-					y: -item.position.y,
-					size: size,
-					color: "#2a2a2b"
-				});
-				canvas.graph.addEdge({
-					id: `yScore-${item.name}-`,
-					source: `yScore-${item.name}-0`,
-					target: `yScore-${item.name}-1`,
-					color: item.color
-				});
-			}
-		});
+		var ratio =
+		canvas.camera.goTo({x: position.x, y: -position.y, angle: 0, ratio: (canvas.camera.ratio > zoom) ? 0.025 : canvas.camera.ratio});
+		if (drawMass) {
+			canvas.graph.addNode({
+				id: "n01",
+				x: position.x, y: -position.y,
+				size: .1,
+				color: `#${hslToHex(207 / 360, 89.7 / 100, .5)}`
+			});
+		}
+		if (drawLines) {
+			[
+				{name: "mass", position: this.scores.maxDistance.mass, condition: true, color: "#844336"},
+				{name: "min", position: this.scores.minDistance.minor, condition: true, color: "#8F7B3B"},
+				{name: "max", position: this.scores.maxDistance.major, condition: true, color: "#213683"}
+			].forEach(function (item, index) {
+				if (item.condition) {
+					canvas.graph.addNode({
+						id: `xScore-${item.name}-0`,
+						x: item.position.x,
+						y: -(position.y + (lines.y / 2) - offset.y),
+						size: size,
+						color: "#2a2a2b"
+					});
+					canvas.graph.addNode({
+						id: `xScore-${item.name}-1`,
+						x: item.position.x,
+						y: -(position.y - (lines.y / 2) + offset.y),
+						size: size,
+						color: "#2a2a2b"
+					});
+					canvas.graph.addEdge({
+						id: `xScore-${item.name}-`,
+						source: `xScore-${item.name}-0`,
+						target: `xScore-${item.name}-1`,
+						color: item.color
+					});
+					canvas.graph.addNode({
+						id: `yScore-${item.name}-0`,
+						x: (position.x + (lines.x / 2) - offset.x),
+						y: -item.position.y,
+						size: size,
+						color: "#2a2a2b"
+					});
+					canvas.graph.addNode({
+						id: `yScore-${item.name}-1`,
+						x: (position.x - (lines.x / 2) + offset.x),
+						y: -item.position.y,
+						size: size,
+						color: "#2a2a2b"
+					});
+					canvas.graph.addEdge({
+						id: `yScore-${item.name}-`,
+						source: `yScore-${item.name}-0`,
+						target: `yScore-${item.name}-1`,
+						color: item.color
+					});
+				}
+			});
+		}
 		if (drawGrid) {
 			this.DrawGrid(canvas);
 		}
@@ -490,8 +541,80 @@ class Creature {
 				hover_color: '#000'
 			})
 		}
-		//canvas.graph.addNode({id: "n5", label: "test", x: .5, y: .5, color: "#f00"});
 		canvas.refresh();
+	}
+	RunSimulation() {
+		for (var frame = 0; frame < 15 * simulator.frameRate; frame++) {
+			this.Update();
+			if (this.data.flatGrounded) {
+				break;
+			}
+		}
+	}
+	Reproduce() {
+		var offspring = clone(this);
+		offspring.id = simulator.creatures.push(offspring)-1;
+		/*offspring.data = {centerOfMass: new Vector2(), maxPosition: new Vector2(), minPosition: new Vector2(), mass: 0, grounded: false, flatGrounded: false};
+		offspring.scores = {
+			maxDistance: {
+				mass: new Vector2(),
+				minor: new Vector2(),
+				major: new Vector2()
+			},
+			minDistance: {
+				mass: new Vector2(),
+				minor: new Vector2(),
+				major: new Vector2()
+			},
+			flatGrounded: false,
+			time: 0
+		}
+		offspring.frame = 0;
+		offspring.Normalize();
+		offspring._this = clone(offspring);
+		offspring.RunSimulation();
+		for (var key in offspring._this) {
+			if (key != "scores" && key != "_this") {
+				offspring[key] = offspring._this[key];
+			}
+		}
+		delete offspring._this;*/
+		return offspring;
+	}
+	GetFitness() {
+		return simulator.objective(this);
+	}
+}
+
+class Generation {
+	constructor(creatures=[]) {
+		this.generation = simulator.generations.push(this)-1;
+		this.species = {};
+		this.creatures = [];
+		if (creatures.length > 0) {
+			this.creatures = creatures;
+		}
+		for (var creature = 0; creature < simulator.creature.count; creature++) {
+			if (creature > creatures.length-1) {
+				var c = new Creature();
+				this.creatures.push(c);
+			}
+			if (!(this.creatures[creature].species in this.species)) {
+				this.species[this.creatures[creature].species] = 0
+			}
+			this.species[this.creatures[creature].species]++;
+		}
+		this.creatures.sort(function(a, b) {
+			return b.GetFitness() - a.GetFitness()
+		});
+	}
+	Reproduce() {
+		var creatures = [];
+		for (var c = 0; c < simulator.creature.count / 2; c++) {
+			creatures.push(clone(this.creatures[c]));
+			creatures.push(this.creatures[c].Reproduce());
+		}
+		return new Generation(creatures);
 	}
 }
 
@@ -500,10 +623,5 @@ if (simulator.seed == 0) {
 	simulator.seed = Math.floor(Math.random() * 10000);
 }
 seedRandom(simulator.seed, {global: true});
-
-/*ori.arc("center", "center", 20, {
-	background: '#' + hslToHex(207/360, 89.7/100, .5)
-})
-ori.draw();*/
 
 //module.exports = {Node, Muscle};
