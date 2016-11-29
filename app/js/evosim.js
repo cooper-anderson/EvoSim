@@ -219,7 +219,7 @@ class Muscle {
 
 /**
  * The Creature class
- * This is the data-type that will be the main use of the simulator
+ * @classdesc This is the data-type that will be the main use of the simulator
  */
 class Creature {
     /**
@@ -248,7 +248,7 @@ class Creature {
 				},
 				flatGrounded: false,
 				time: 0
-			}
+			};
 			this.frame = 0;
 			for (var node = 0; node < Math.floor(Math.random() * (simulator.creature.node.maximum - simulator.creature.node.minimum)) + simulator.creature.node.minimum; node++) {
 				this.nodes.push(new Node(new Vector2(Math.random(), Math.random()), Math.random(), Math.floor(Math.random() * 0) + 1, node));
@@ -691,7 +691,7 @@ class Creature {
 
 /**
  * The Generation Class
- * This holds all the creatures of a specific generation
+ * @classdesc This holds all the creatures of a specific generation
  */
 class Generation {
 	/**
