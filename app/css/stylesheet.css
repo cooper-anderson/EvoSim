@@ -36,6 +36,24 @@ g.highcharts-label.highcharts-tooltip-box>text>tspan {
 	border-top: 50px;
 }
 
+.separator {
+	position: absolute;
+	border-right: thin #ccbb16 solid;
+	pointer-events: none;
+}
+
+.separator.top {
+	width: 42.5px;
+	top: 36px;
+	height: 0px;
+}
+
+.separator.bottom {
+	width: 42.5px;
+	bottom: 63px;
+	height: 0px;
+}
+
 #userInterface {
 	background: #2a2a2b;
 	position: absolute;

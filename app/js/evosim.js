@@ -220,6 +220,7 @@ class Creature {
 			this.ancestor = this.id;
 			this.nodes = [];
 			this.muscles = [];
+			this.muscleAction = Math.round(Math.random());
 			this.data = {centerOfMass: new Vector2(), maxPosition: new Vector2(), minPosition: new Vector2(), mass: 0, grounded: false, flatGrounded: false};
 			this.scores = {
 				maxDistance: {
@@ -239,6 +240,7 @@ class Creature {
 			for (var node = 0; node < Math.floor(Math.random() * (simulator.creature.node.maximum - simulator.creature.node.minimum)) + simulator.creature.node.minimum; node++) {
 				this.nodes.push(new Node(new Vector2(Math.random(), Math.random()), Math.random(), Math.floor(Math.random() * 0) + 1, node));
 			}
+			var maxMuscleLength = 0;
 			for (var muscle = 0; muscle < this.nodes.length; muscle++) {
 				var length = (Math.random() * 3)+.5;
 				this.muscles.push(new Muscle(
@@ -257,7 +259,11 @@ class Creature {
 					},
 					Math.random())
 				);
+				if (maxMuscleLength < length * 1.5) {
+					maxMuscleLength = length;
+				}
 			}
+			this.maxMuscleLength = maxMuscleLength;
 			for (var muscle = 0; muscle < (this.nodes.length*(this.nodes.length-1)/2) - this.muscles.length; muscle++) {
 				var node1 = Math.floor(Math.random()*this.nodes.length);
 				var node2 = Math.floor(Math.random()*this.nodes.length);
@@ -293,9 +299,8 @@ class Creature {
 		for (var n in this.nodes) {
 			this.nodes[n].velocity = new Vector2();
 		}
-		var chance = Math.round(Math.random());
 		for (var m in this.muscles) {
-			this.muscles[m].period.current = ["major", "minor"][chance];
+			this.muscles[m].period.current = ["major", "minor"][this.muscleAction];
 		}
 	}
 	SetScores() {
@@ -339,6 +344,23 @@ class Creature {
 		}
 		if (maxPosition.y < this.scores.minDistance.major.y) {
 			this.scores.minDistance.major.y = maxPosition.y;
+		}
+	}
+	ResetScores() {
+		this.data = {centerOfMass: new Vector2(), maxPosition: new Vector2(), minPosition: new Vector2(), mass: 0, grounded: false, flatGrounded: false};
+		this.scores = {
+			maxDistance: {
+				mass: new Vector2(),
+				minor: new Vector2(),
+				major: new Vector2()
+			},
+			minDistance: {
+				mass: new Vector2(),
+				minor: new Vector2(),
+				major: new Vector2()
+			},
+			flatGrounded: false,
+			time: 0
 		}
 	}
 	Update() {
@@ -459,7 +481,6 @@ class Creature {
 		var lines = new Vector2(Math.ceil(canvas.renderers[0].height * canvas.camera.ratio), Math.ceil(canvas.renderers[0].width * canvas.camera.ratio));
 		var offset = new Vector2(-15, -15);
 		var size = 20;
-		var ratio =
 		canvas.camera.goTo({x: position.x, y: -position.y, angle: 0, ratio: (canvas.camera.ratio > zoom) ? 0.025 : canvas.camera.ratio});
 		if (drawMass) {
 			canvas.graph.addNode({

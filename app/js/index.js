@@ -36,7 +36,9 @@ $(function () {
 			}
 		},
 		yAxis: {
-			//tickmarks: ['10', '20', '30', '40', '50', '60', '70', '80', '90', '100']
+			labels: {
+				rotation: -90
+			},
 			title: {
 				text: ''
 			}
@@ -201,8 +203,10 @@ $(".btn").on("click", function(event) {
 
 var prev;
 $(".preview").on("mouseover", function() {
-	prev = this;
-	createViewWindow(this);
+	if (simulator.creatures.length > 0) {
+		prev = this;
+		createViewWindow(this);
+	}
 })
 
 $(".preview").on("mouseout", function() {
@@ -339,20 +343,78 @@ function createViewWindow(preview) {
 	border: dashed 1px black;
 " id="viewWindow" data-id="${$(preview).data().id}"></div>`);
 	} else {
-		$("body").append(`<div style="
-	position: absolute;
-	background-color: #2a2a2b;
-	color: white;
-	width: ${$("#historyGraph").outerWidth()}px;
-	height: ${$("#historyGraph").outerHeight()}px;
-	left: ${$("#historyGraph").offset().left}px;
-	top: ${$("#historyGraph").offset().top}px;
-	border: dashed 1px black;
-" id="viewWindow" data-id="${$(preview).data().id}"></div>`);
+		$("body").append(`
+			<div id="viewWindow" style="position: absolute; background-color: #2a2a2b; color: #E0E0E3; font-size: 20px; font-family: 'Unica One', sans-serif;
+					width: ${$("#historyGraph").outerWidth()}px;
+					height: ${$("#historyGraph").outerHeight()}px;
+					left: ${$("#historyGraph").offset().left}px;
+					top: ${$("#historyGraph").offset().top}px;
+					padding: 0px 10px 90px 0px;">
+				<style>
+					.circles {
+						top: 6px;
+						left: 13px;
+						text-align: center;
+						cursor: default !important;
+					}
+					.circles button {
+						outline:none !important;
+						border: none !important;
+						width: 12px;
+						height: 12px;
+						-webkit-border-radius: 6px;
+						border-radius: 6px;
+						-webkit-background-clip: padding;
+						-moz-background-clip: padding;
+						background-clip: padding-box;
+						background-color: #535559;
+						-webkit-transition: background-color .2s;
+						-moz-transition: background-color .2s;
+						-o-transition: background-color .2s;
+						-ms-transition: background-color .2s;
+						transition: background-color .2s;
+						opacity: .7;
+						-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=70)";
+						filter: alpha(opacity=70);
+						border: 0;
+					}
+					.circles button:hover {
+						opacity: 1;
+						-ms-filter: none;
+						filter: none;
+					}
+					.circles button + button {
+						margin-left: 4px;
+					}
+					.circles>button {
+						margin-top: 16px;
+						margin-left: 15px;
+						margin-right: 7px;
+					}
+					.circles>span {
+						position: relative;
+						bottom: -2px;
+						margin-right: 10px;
+					}
+				</style>
+				<p align="center" style="margin: 5px;">CREATURE PREVIEW</p>
+				<div style="
+					margin: 8px 0px 0px;
+					width: 100%; height: 100%;
+					border: dashed 1px black;" id="viewWindowCanvas" data-id="${$(preview).data().id}">
+				</div>
+				<div align="center" style="width: 100%; height: 100%; font-size: 12px; font-weight: bold;" class="circles">
+					<button style="background-color: #36db47"></button><span>origin</span>
+					<button style="background-color: #fb615b"></button><span>mass</span>
+					<button style="background-color: #256fdb"></button><span>major</span>
+					<button style="background-color: #dbbe25"></button><span>minor</span>
+				</div>
+			</div>
+		`);
 	}
 	viewWindow.sigma = new sigma({
 		renderer: {
-			container: document.getElementById('viewWindow'),
+			container: document.getElementById('viewWindowCanvas'),
 			type: 'canvas'
 		},
 		settings: {
@@ -361,6 +423,7 @@ function createViewWindow(preview) {
 		}
 	})
 	viewWindow.creature = clone(simulator.creatures[$(preview).data().id]);
+	viewWindow.creature.ResetScores();
 	viewWindow.creature.Normalize();
 	viewWindow.interval = setInterval(function() {
 		viewWindow.creature.Update();
@@ -389,13 +452,33 @@ function getSeries(graph, name) {
 }
 
 function updateCreatures() {
-	var gen = $("#generationSlider").slider("getValue") - 1;
-	$("#canvas3").data().id = simulator.generations[gen].creatures[0].id
-	simulator.generations[gen].creatures[0].Draw(cSigma, false, false, false, 1000000);
-	$("#canvas2").data().id = simulator.generations[gen].creatures[Math.round(simulator.creature.count / 2)].id
-	simulator.generations[gen].creatures[Math.round(simulator.creature.count / 2)].Draw(bSigma, false, false, false, 1000000);
-	$("#canvas1").data().id = simulator.generations[gen].creatures[simulator.creature.count - 1].id
-	simulator.generations[gen].creatures[simulator.creature.count - 1].Draw(aSigma, false, false, false, 1000000);
+	var fit = {
+		element: $(".highcharts-axis.highcharts-xaxis")[0],
+		first: $(".highcharts-axis.highcharts-xaxis")[0].children[0].getBoundingClientRect().left,
+		last: $(".highcharts-plot-background")[0].width.baseVal.value
+	}
+	var div = {
+		element: $(".highcharts-axis.highcharts-xaxis")[1],
+		first: $(".highcharts-axis.highcharts-xaxis")[1].children[0].getBoundingClientRect().left,
+		last: $(".highcharts-plot-background")[1].width.baseVal.value
+	}
+	var gen = $("#generationSlider").slider("getValue") - 1, c, max = $("#generationSlider").slider("getAttribute").max;
+	$(".separator.top").width(`${(fit.first + ((gen+1) / max * (fit.last - 9)))}px`);
+	$(".separator.bottom").width(`${(div.first + ((gen+1) / max * (div.last - 7)))}px`);
+	if (gen != -1) {
+		c = clone(simulator.generations[gen].creatures[0]);
+		c.Normalize();
+		$("#canvas3").data().id = c.id;
+		c.Draw(cSigma, false, false, false, 1000000);
+		c = clone(simulator.generations[gen].creatures[Math.round(simulator.creature.count / 2)]);
+		c.Normalize();
+		$("#canvas2").data().id = c.id;
+		c.Draw(bSigma, false, false, false, 1000000);
+		c = clone(simulator.generations[gen].creatures[simulator.creature.count - 1]);
+		c.Normalize();
+		$("#canvas1").data().id = c.id;
+		c.Draw(aSigma, false, false, false, 1000000);
+	}
 }
 
 function create() {
@@ -427,6 +510,13 @@ function create() {
 	$("#generationSlider").slider("refresh");
 	updateCreatures();
 }
+
+setInterval(function() {
+	if ($(".highcharts-plot-background").length != 0) {
+		$(".separator.top").height($(".highcharts-plot-background")[1].height.baseVal.value + 21);
+		$(".separator.bottom").height($(".highcharts-plot-background")[0].height.baseVal.value + 21);
+	}
+});
 
 setInterval(function() {
 	if (cont) {
