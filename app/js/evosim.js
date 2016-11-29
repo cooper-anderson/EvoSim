@@ -217,7 +217,16 @@ class Muscle {
 	}
 }
 
+/**
+ * The Creature class
+ * This is the data-type that will be the main use of the simulator
+ */
 class Creature {
+    /**
+	 * Create a creature
+     * @param {Creature} parent
+	 * @constructor
+     */
 	constructor(parent=undefined) {
 		if (parent == undefined) {
 			this.id = simulator.creatures.push(this)-1;
@@ -289,6 +298,10 @@ class Creature {
 
 		}
 	}
+
+    /**
+	 * Normalize the creature so that it is it's natural position
+     */
 	Normalize() {
 		for (var frame=0; frame < 2 * simulator.frameRate; frame++) {
 			for (var m in this.muscles) {
@@ -305,6 +318,10 @@ class Creature {
 			this.muscles[m].period.current = ["major", "minor"][this.muscleAction];
 		}
 	}
+
+	/**
+	 * Sets the scores of the creature. Runs each frame
+	 */
 	SetScores() {
 		var centerOfMass = this.data.centerOfMass, maxPosition = this.data.maxPosition, minPosition = this.data.minPosition;
 		if (this.data.flatGrounded && !this.scores.flatGrounded) {
@@ -348,6 +365,10 @@ class Creature {
 			this.scores.minDistance.major.y = maxPosition.y;
 		}
 	}
+
+	/**
+	 * Reset the scores of the creature to the defaults
+	 */
 	ResetScores() {
 		this.data = {centerOfMass: new Vector2(), maxPosition: new Vector2(), minPosition: new Vector2(), mass: 0, grounded: false, flatGrounded: false};
 		this.scores = {
@@ -365,6 +386,10 @@ class Creature {
 			time: 0
 		}
 	}
+
+	/**
+	 * The creature's update function. Updates all of the nodes and muscles and sets data and scores
+	 */
 	Update() {
 		for (var m in this.muscles) {
 			this.muscles[m].Update();
@@ -376,24 +401,59 @@ class Creature {
 		this.SetScores();
 		this.frame++;
 	}
+
+	/**
+	 * Returns the mass of the creature
+	 * @returns {number} The mass of the creature
+	 */
 	GetMass() {
 		return this.data.mass;
 	}
+
+	/**
+	 * Returns the center of mass
+	 * @returns {Vector2} The center of mass
+	 */
 	GetCenterOfMass() {
 		return this.data.centerOfMass;
 	}
+
+	/**
+	 * Returns the furthest point in the positive direction's position
+	 * @returns {Vector2} The maximum position
+	 */
 	GetMaxPosition() {
 		return this.data.maxPosition;
 	}
+
+	/**
+	 * Returns the furthest point in the negative direction's position
+	 * @returns {Vector2} The minimum position
+	 */
 	GetMinPosition() {
 		return this.data.minPosition;
 	}
+
+	/**
+	 * Returns true if the creature has at least one node on the ground
+	 * @returns {boolean} If the creature is grounded
+	 */
 	IsGrounded() {
 		return this.data.grounded;
 	}
+
+	/**
+	 * Returns true if the creature has all nodes on the ground
+	 * @returns {boolean} If the creature is flat grounded
+	 */
 	IsFlatGrounded() {
 		return this.data.flatGrounded;
 	}
+
+	/**
+	 * Returns the data of the creature
+	 * @returns {{centerOfMass, maxPosition, minPosition, mass: number, grounded: boolean, flatGrounded: boolean}} The data of the creature
+	 */
 	GetData() {
 		var data = {centerOfMass: new Vector2(), maxPosition: new Vector2(), minPosition: new Vector2(), mass: 0, grounded: false, flatGrounded: false};
 		var groundStatus = [];
@@ -424,9 +484,18 @@ class Creature {
 		}
 		return data;
 	}
+
+	/**
+	 * Sets the data variable of the creature to the creature's real data
+	 */
 	SetData() {
 		this.data = this.GetData();
 	}
+
+	/**
+	 * Draws the grid that the creature is on top of.
+	 * @param {sigma} canvas
+	 */
 	DrawGrid(canvas) {
 		var pos = this.data.centerOfMass;
 		var lines = new Vector2(Math.ceil(canvas.renderers[0].height * canvas.camera.ratio), Math.ceil(canvas.renderers[0].width * canvas.camera.ratio));
@@ -477,6 +546,15 @@ class Creature {
 			});
 		}
 	}
+
+	/**
+	 * Draws the creature onto the given sigma graph
+	 * @param {sigma} canvas - The sigma object that the creature will be drawn to
+	 * @param {boolean} drawGrid - Should the grid be drawn?
+	 * @param {boolean} drawLines - Should the creatures data lines be drawn?
+	 * @param {boolean} drawMass - Should the creatures center of mass be drawn?
+	 * @param {number} zoom - the min zoom value of the grid
+	 */
 	Draw(canvas, drawGrid=true, drawLines=true, drawMass=true, zoom=.1) {
 		canvas.graph.clear();
 		var position = this.data.centerOfMass;
@@ -575,6 +653,10 @@ class Creature {
 		}
 		canvas.refresh();
 	}
+
+	/**
+	 * Runs the entire simulation of the creature
+	 */
 	RunSimulation() {
 		for (var frame = 0; frame < 15 * simulator.frameRate; frame++) {
 			this.Update();
@@ -583,6 +665,11 @@ class Creature {
 			}
 		}
 	}
+
+	/**
+	 * Create a new creature that is the same as this current creature but might have a slight mutation
+	 * @returns {Creature} The newly generated offspring
+	 */
 	Reproduce() {
 		var offspring = clone(this);
 		offspring.id = simulator.creatures.push(offspring)-1;
@@ -592,12 +679,26 @@ class Creature {
 		}
 		return offspring;
 	}
+
+	/**
+	 * Get the creature's fitness level using the fitness function defined in the simulator object
+	 * @returns {number} This creatures fitness
+	 */
 	GetFitness() {
 		return simulator.objective(this);
 	}
 }
 
+/**
+ * The Generation Class
+ * This holds all the creatures of a specific generation
+ */
 class Generation {
+	/**
+	 * Creates a new generation
+	 * @param creatures - The array of creatures that are in the generation
+	 * @constructor
+	 */
 	constructor(creatures=[]) {
 		this.generation = simulator.generations.push(this)-1;
 		this.species = {};
@@ -619,6 +720,11 @@ class Generation {
 			return b.GetFitness() - a.GetFitness()
 		});
 	}
+
+	/**
+	 * Creates a new generation that contains all of the best creatures of this generation, and the offspring of those creatures
+	 * @returns {Generation} The new generation
+	 */
 	Reproduce() {
 		var creatures = [];
 		for (var c = 0; c < simulator.creature.count / 2; c++) {

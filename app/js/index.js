@@ -298,81 +298,6 @@ cSigma = new sigma({
 	}
 });
 
-/*a = new Creature();
-aSigma = new sigma({
-	renderer: {
-		container: document.getElementById('canvas1'),
-		type: 'canvas'
-	},
-	settings: {
-		doubleClickEnabled: false,
-		autoRescale: false
-	}
-});
-a.Draw(aSigma);
-
-b = new Creature();
-bSigma = new sigma({
-	renderer: {
-		container: document.getElementById('canvas2'),
-		type: 'canvas'
-	},
-	settings: {
-		doubleClickEnabled: false,
-		autoRescale: false
-	}
-});
-b.Draw(bSigma);
-
-c = new Creature();
-cSigma = new sigma({
-	renderer: {
-		container: document.getElementById('canvas3'),
-		type: 'canvas'
-	},
-	settings: {
-		doubleClickEnabled: false,
-		autoRescale: false
-	}
-});
-c.Draw(cSigma);
-
-function norm() {
-	a.Update();
-	a.Draw(aSigma);
-	b.Update();
-	b.Draw(bSigma);
-	c.Update();
-	c.Draw(cSigma);
-}
-
-function run() {
-	a.RunSimulation();
-	a.Draw(aSigma);
-	b.RunSimulation();
-	b.Draw(bSigma);
-	c.RunSimulation();
-	c.Draw(cSigma);
-}
-
-interval = setInterval(function() {
-	if (play) {
-		norm();
-		if (![a.data.flatGrounded, b.data.flatGrounded, c.data.flatGrounded].includes(false) || reset) {
-			if (!reset) {
-				fitness.series[0].addPoint(a.GetFitness());
-				fitness.series[1].addPoint(b.GetFitness());
-				fitness.series[2].addPoint(c.GetFitness());
-			}
-			reset = false;
-			a = new Creature();
-			b = new Creature();
-			c = new Creature();
-		}
-
-	}
-}, 1000 / simulator.frameRate)*/
-
 var viewWindow = {
 	sigma: undefined,
 	interval: undefined,
@@ -394,8 +319,7 @@ function createViewWindow(preview) {
 	border: dashed 1px black;
 " id="viewWindow" data-id="${$(preview).data().id}"></div>`);
 	} else {
-		$("body").append(`
-			<div id="viewWindow" style="position: absolute; background-color: #2a2a2b; color: #E0E0E3; font-size: 20px; font-family: 'Unica One', sans-serif;
+		$("body").append(`<div id="viewWindow" style="position: absolute; background-color: #2a2a2b; color: #E0E0E3; font-size: 20px; font-family: 'Unica One', sans-serif;
 					width: ${$("#historyGraph").outerWidth()}px;
 					height: ${$("#historyGraph").outerHeight()}px;
 					left: ${$("#historyGraph").offset().left}px;
@@ -474,8 +398,7 @@ function createViewWindow(preview) {
 					<button style="background-color: #256fdb"></button><span>major</span>
 					<button style="background-color: #dbbe25"></button><span>minor</span>
 				</div>
-			</div>
-		`);
+			</div>`);
 	}
 	viewWindow.sigma = new sigma({
 		renderer: {
@@ -526,21 +449,7 @@ function getSeries(graph, name) {
 }
 
 function updateCreatures() {
-	/*var fit = {
-		element: $(".highcharts-axis.highcharts-xaxis")[0],
-		first: $(".highcharts-axis.highcharts-xaxis")[0].children[0].getBoundingClientRect().left,
-		last: $(".highcharts-plot-background")[0].width.baseVal.value
-	}
-	var div = {
-		element: $(".highcharts-axis.highcharts-xaxis")[1],
-		first: $(".highcharts-axis.highcharts-xaxis")[1].children[0].getBoundingClientRect().left,
-		last: $(".highcharts-plot-background")[1].width.baseVal.value
-	}*/
 	var gen = $("#generationSlider").slider("getValue") - 1, c, max = $("#generationSlider").slider("getAttribute").max;
-	/*if (simulator.generations.length != 1) {
-		$(".separator.top").width(`${(fit.first + ((gen + 1) / max * (fit.last - 9)))}px`);
-		$(".separator.bottom").width(`${(div.first + ((gen + 1) / max * (div.last - 7)))}px`);
-	}*/
 	var fit = fitness.axes[0].plotLinesAndBands[0].options.value;
 	fitness.axes[0].plotLinesAndBands[0].options.value = gen + 1;
 	if (fit != fitness.axes[0].plotLinesAndBands[0].options.value) {
