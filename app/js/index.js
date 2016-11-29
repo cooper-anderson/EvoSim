@@ -2,21 +2,6 @@
  * Created by Cooper Anderson on 11/6/16 AD.
  */
 
-datas = {
-	C3: [Math.round(Math.random() * 100)],
-	C6: [Math.round(Math.random() * 100)],
-	D4: [Math.round(Math.random() * 100)],
-	D5: [Math.round(Math.random() * 100)],
-	D6: [Math.round(Math.random() * 100)],
-	F6: [Math.round(Math.random() * 100)]
-};
-function generateSeries(data) {
-	var series = [];
-	for (var name in data) {
-		series.push({name: name, data: data[name]});
-	}
-	return series;
-}
 $(function () {
 	$("#diversityGraph").highcharts({
 		chart: {
@@ -26,11 +11,17 @@ $(function () {
 		},
 		title: {
 			enabled: false,
-			text: 'Diversity'//'Random Numbers That go Up and Down'
+			text: 'Diversity'
 		},
 		xAxis: {
 			allowDecimals: false,
 			tickmarkPlacement: 'on',
+			plotLines: [{
+				value: 0,
+				width: 1,
+				color: '#ccbb16',
+				zIndex: 100
+			}],
 			title: {
 				enabled: false
 			}
@@ -70,6 +61,12 @@ $(function () {
 			enabled: false
 		},
 		xAxis: {
+			plotLines: [{
+				value: 0,
+				width: 1,
+				color: '#ccbb16',
+				zIndex: 100
+			}],
 			allowDecimals: false
 		},
 		yAxis: {
@@ -94,7 +91,7 @@ $(function () {
 				}
 			}
 		},
-		series: [{
+		/*series: [{
 			name: 'a',
 			data: [0]
 		}, {
@@ -103,54 +100,107 @@ $(function () {
 		}, {
 			name: 'c',
 			data: [0]
+		}]*/
+		series: [{
+			name: '100%',
+			data: [0],
+			color: "#90ee7e"
+		}, {
+			name: '75%',
+			data: [0],
+			color: "#ca7a3d"
+		}, {
+			name: '50%',
+			data: [0],
+			color: "#2b908f"
+		}, {
+			name: '25%',
+			data: [0],
+			color: "#ca7a3d"
+		}, {
+			name: '0%',
+			data: [0],
+			color: "#f45b5b"
 		}]
 		/*series: [{
 			name: '100%',
-			data: [7.0]
+			data: [0],
+			color: "#90ee7e"
 		}, {
-			name: '75%',
-			data: [5.0]
+			name: '90%',
+			data: [0]
+		}, {
+			name: '80%',
+			data: [0]
+		}, {
+			name: '70%',
+			data: [0]
+		}, {
+			name: '60%',
+			data: [0]
 		}, {
 			name: '50%',
-			data: [4]
+			data: [0],
+			color: "#2b908f"
 		}, {
-			name: '25%',
-			data: [3]
+			name: '40%',
+			data: [0]
+		}, {
+			name: '30%',
+			data: [0]
+		}, {
+			name: '20%',
+			data: [0]
+		}, {
+			name: '10%',
+			data: [0]
 		}, {
 			name: '0%',
-			data: [1]
+			data: [0],
+			color: "#f45b5b"
 		}]*/
 	});
 });
 $(function() {
 	$("#historyGraph").highcharts({
 		chart: {
-			type: 'column'
+			type: 'column',
+			animation: false
 		},
 		title: {
 			text: "Histogram"
 		},
 		xAxis: {
-			categories: ['0.1', '0.2', '0.3', '0.4', '0.5', '0.6', '0.7', '0.8', '0.9', '1.0', '1.1', '1.2']
+			plotLines: [{
+				value: 0,
+				width: 1,
+				color: '#ccbb16',
+				zIndex: 100/*,
+				label: {
+					text: 'Median',
+					verticalAlign: 'middle',
+					textAlign: 'center'
+				}*/
+			}]
 		},
 		yAxis: {
 			title: {
 				text: null
 			}
 		},
-		//tooltip: {
-		//	pointFormat: '<span style="color:{series.color};">{series.name}</span>: <b>{point.percentage:.1f}%</b> ({point.y:,.0f})<br/>'
-		//},
+		//tooltip: {pointFormat: '<span style="color:{series.color};">{series.name}</span>: <b>{point.percentage:.1f}%</b> ({point.y:,.0f})<br/>'},
 		plotOptions: {
 			column: {
 				pointPadding: 0,//-.001,
 				groupPadding: -.001,
 				borderWidth: 0,
-			}
+				animation: false
+			},
+			animation: false
 		},
 		series: [{
 			name: "Creatures",
-			data: [29.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4]
+			data: [/*29.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 216.4, 194.1, 95.6, 54.4*/]
 		}]
 	})
 });
@@ -326,7 +376,8 @@ interval = setInterval(function() {
 var viewWindow = {
 	sigma: undefined,
 	interval: undefined,
-	creature: undefined
+	creature: undefined,
+	time: 0
 };
 function createViewWindow(preview) {
 	var mode = "big";
@@ -402,6 +453,20 @@ function createViewWindow(preview) {
 					margin: 8px 0px 0px;
 					width: 100%; height: 100%;
 					border: dashed 1px black;" id="viewWindowCanvas" data-id="${$(preview).data().id}">
+					<div style="position: absolute; font-size: 12px; z-index: 100; width: 100%; padding: 8px;">
+						<div style="position: absolute">
+							<span>id: #<span id="creature-id">0</span></span><br>
+							<span>species: <span id="creature-species">0</span></span><br>
+							<span>fitness: <span id="creature-fitness">0</span></span><br>
+							<span>rank: <span id="creature-rank">NaN</span></span>
+						</div>
+						<div style="position: absolute; right: 18px;">
+							<span>time: <span id="creature-time" style="float: right;">0</span></span><br>
+							<span>fitness: <span id="creature-currentfitness" style="float: right;">0</span></span><br>
+							<span>grounded: <span id="creature-grounded" style="float: right;">true</span></span><br>
+							<span>alive: <span id="creature-alive" style="float: right;">false</span></span>
+						</div>
+					</div>
 				</div>
 				<div align="center" style="width: 100%; height: 100%; font-size: 12px; font-weight: bold;" class="circles">
 					<button style="background-color: #36db47"></button><span>origin</span>
@@ -423,11 +488,20 @@ function createViewWindow(preview) {
 		}
 	})
 	viewWindow.creature = clone(simulator.creatures[$(preview).data().id]);
+	viewWindow.time = 0;
+	$("#creature-id").html(viewWindow.creature.id);
+	$("#creature-species").html(viewWindow.creature.species);
+	$("#creature-fitness").html(viewWindow.creature.GetFitness().toFixed(2));
 	viewWindow.creature.ResetScores();
 	viewWindow.creature.Normalize();
 	viewWindow.interval = setInterval(function() {
 		viewWindow.creature.Update();
 		viewWindow.creature.Draw(viewWindow.sigma);
+		viewWindow.time += 1 / simulator.frameRate;
+		$("#creature-time").html(viewWindow.time.toFixed(2));
+		$("#creature-currentfitness").html(viewWindow.creature.GetFitness().toFixed(2));
+		$("#creature-grounded").html(viewWindow.creature.data.grounded ? "yes" : "no");
+		$("#creature-alive").html(viewWindow.creature.data.flatGrounded ? "no" : "yes");
 	}, 1000 / simulator.frameRate);
 }
 
@@ -452,7 +526,7 @@ function getSeries(graph, name) {
 }
 
 function updateCreatures() {
-	var fit = {
+	/*var fit = {
 		element: $(".highcharts-axis.highcharts-xaxis")[0],
 		first: $(".highcharts-axis.highcharts-xaxis")[0].children[0].getBoundingClientRect().left,
 		last: $(".highcharts-plot-background")[0].width.baseVal.value
@@ -461,23 +535,81 @@ function updateCreatures() {
 		element: $(".highcharts-axis.highcharts-xaxis")[1],
 		first: $(".highcharts-axis.highcharts-xaxis")[1].children[0].getBoundingClientRect().left,
 		last: $(".highcharts-plot-background")[1].width.baseVal.value
-	}
+	}*/
 	var gen = $("#generationSlider").slider("getValue") - 1, c, max = $("#generationSlider").slider("getAttribute").max;
-	$(".separator.top").width(`${(fit.first + ((gen+1) / max * (fit.last - 9)))}px`);
-	$(".separator.bottom").width(`${(div.first + ((gen+1) / max * (div.last - 7)))}px`);
+	/*if (simulator.generations.length != 1) {
+		$(".separator.top").width(`${(fit.first + ((gen + 1) / max * (fit.last - 9)))}px`);
+		$(".separator.bottom").width(`${(div.first + ((gen + 1) / max * (div.last - 7)))}px`);
+	}*/
+	var fit = fitness.axes[0].plotLinesAndBands[0].options.value;
+	fitness.axes[0].plotLinesAndBands[0].options.value = gen + 1;
+	if (fit != fitness.axes[0].plotLinesAndBands[0].options.value) {
+		fitness.axes[0].plotLinesAndBands[0].render();
+	}
+	var div = diversity.axes[0].plotLinesAndBands[0].options.value;
+	diversity.axes[0].plotLinesAndBands[0].options.value = gen + 1;
+	if (div != diversity.axes[0].plotLinesAndBands[0].options.value) {
+		diversity.axes[0].plotLinesAndBands[0].render();
+	}
 	if (gen != -1) {
 		c = clone(simulator.generations[gen].creatures[0]);
 		c.Normalize();
+		//c.Update();
 		$("#canvas3").data().id = c.id;
 		c.Draw(cSigma, false, false, false, 1000000);
 		c = clone(simulator.generations[gen].creatures[Math.round(simulator.creature.count / 2)]);
 		c.Normalize();
+		//c.Update();
 		$("#canvas2").data().id = c.id;
 		c.Draw(bSigma, false, false, false, 1000000);
 		c = clone(simulator.generations[gen].creatures[simulator.creature.count - 1]);
 		c.Normalize();
+		//c.Update();
 		$("#canvas1").data().id = c.id;
 		c.Draw(aSigma, false, false, false, 1000000);
+
+		var fitnesses = {}
+		for (var creature in simulator.generations[gen].creatures) {
+			var fit = simulator.generations[gen].creatures[creature].GetFitness().toFixed(2);
+			if (!(fit/*.toString()*/ in fitnesses)) {
+				fitnesses[fit/*.toString()*/] = 0
+			}
+			fitnesses[fit/*.toString()*/]++;
+		}
+		var history = {
+			fitness: [],
+			count: [],
+			data: []
+		}
+		function ReverseObject(Obj){
+			var TempArr = [];
+			var NewObj = [];
+			for (var Key in Obj){
+				TempArr.push(Key);
+			}
+			for (var i = TempArr.length-1; i >= 0; i--){
+				NewObj[TempArr[i]] = [];
+			}
+			return NewObj;
+		}
+		for (var key in ReverseObject(fitnesses)) {
+			history.fitness.push(key);
+			history.count.push(fitnesses[key]);
+			history.data.push([Number(key), fitnesses[key]]);
+		}
+		histogram.series[0].remove();
+		histogram.axes[0].categories = history.fitness;
+		histogram.addSeries({name: "Creatures", data: history.count, animation: false, color: "#2b908f"});
+		histogram.render();
+		histogram.axes[0].plotLinesAndBands[0].options.value = history.fitness.findIndex(function(item, index, array) {
+			if (array.length == 1) {
+				return 1;
+			}
+			if (item == simulator.generations[gen].creatures[Math.round(simulator.creature.count / 2)].GetFitness().toFixed(2)) {
+				return index;
+			}
+		});
+		histogram.axes[0].plotLinesAndBands[0].render();
 	}
 }
 
@@ -501,8 +633,21 @@ function create() {
 		}
 	}
 	fitness.series[0].addPoint(Number(g.creatures[0].GetFitness().toFixed(2)));
-	fitness.series[1].addPoint(Number(g.creatures[Math.round(simulator.creature.count / 2)].GetFitness().toFixed(2)));
-	fitness.series[2].addPoint(Number(g.creatures[simulator.creature.count - 1].GetFitness().toFixed(2)));
+	fitness.series[1].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .75)].GetFitness().toFixed(2)));
+	fitness.series[2].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .5)].GetFitness().toFixed(2)));
+	fitness.series[3].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .25)].GetFitness().toFixed(2)));
+	fitness.series[4].addPoint(Number(g.creatures[simulator.creature.count - 1].GetFitness().toFixed(2)));
+	/*fitness.series[0].addPoint(Number(g.creatures[0].GetFitness().toFixed(2)));
+	fitness.series[1].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .1)].GetFitness().toFixed(2)));
+	fitness.series[2].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .2)].GetFitness().toFixed(2)));
+	fitness.series[3].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .3)].GetFitness().toFixed(2)));
+	fitness.series[4].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .4)].GetFitness().toFixed(2)));
+	fitness.series[5].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .5)].GetFitness().toFixed(2)));
+	fitness.series[6].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .6)].GetFitness().toFixed(2)));
+	fitness.series[7].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .7)].GetFitness().toFixed(2)));
+	fitness.series[8].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .8)].GetFitness().toFixed(2)));
+	fitness.series[9].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .9)].GetFitness().toFixed(2)));
+	fitness.series[10].addPoint(Number(g.creatures[simulator.creature.count - 1].GetFitness().toFixed(2)));*/
 	generationSlider.max++;
 	if (generationSlider.value == generationSlider.max - 1) {
 		generationSlider.value++;

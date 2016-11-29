@@ -8,12 +8,16 @@ const sigma = require("sigma");
 const clone = require("clone");
 
 var simulator = {
-	seed: 0,//3438,
+	seed: 2757,//3438,
 	objective: function(creature) {
 		//var size = Vector2.Sub(creature.scores.maxDistance.major, creature.scores.minDistance.minor);
+		if (creature.scores.maxDistance.mass.x > Math.abs(creature.scores.minDistance.mass.x)) {
+			return creature.scores.maxDistance.mass.x;
+		} else {
+			return creature.scores.minDistance.mass.x;
+		}
 		//return size.x * size.y;
-		return creature.scores.maxDistance.mass.x;
-		//return creature.scores.time;
+		//return creature.scores.maxDistance.mass.x;
 	},
 	mutability: .05,
 	creature: {
@@ -259,9 +263,7 @@ class Creature {
 					},
 					Math.random())
 				);
-				if (maxMuscleLength < length * 1.5) {
-					maxMuscleLength = length;
-				}
+				maxMuscleLength += length * 1.5 / 2;
 			}
 			this.maxMuscleLength = maxMuscleLength;
 			for (var muscle = 0; muscle < (this.nodes.length*(this.nodes.length-1)/2) - this.muscles.length; muscle++) {
@@ -481,6 +483,15 @@ class Creature {
 		var lines = new Vector2(Math.ceil(canvas.renderers[0].height * canvas.camera.ratio), Math.ceil(canvas.renderers[0].width * canvas.camera.ratio));
 		var offset = new Vector2(-15, -15);
 		var size = 20;
+		if (zoom == .1) {
+			canvas.camera.ratio = (function (self) {
+				if (canvas.renderers[0].height < canvas.renderers[0].width) {
+					return self.maxMuscleLength / canvas.renderers[0].height;
+				} else {
+					return self.maxMuscleLength / canvas.renderers[0].width;
+				}
+			})(this);
+		}
 		canvas.camera.goTo({x: position.x, y: -position.y, angle: 0, ratio: (canvas.camera.ratio > zoom) ? 0.025 : canvas.camera.ratio});
 		if (drawMass) {
 			canvas.graph.addNode({
@@ -575,31 +586,10 @@ class Creature {
 	Reproduce() {
 		var offspring = clone(this);
 		offspring.id = simulator.creatures.push(offspring)-1;
-		/*offspring.data = {centerOfMass: new Vector2(), maxPosition: new Vector2(), minPosition: new Vector2(), mass: 0, grounded: false, flatGrounded: false};
-		offspring.scores = {
-			maxDistance: {
-				mass: new Vector2(),
-				minor: new Vector2(),
-				major: new Vector2()
-			},
-			minDistance: {
-				mass: new Vector2(),
-				minor: new Vector2(),
-				major: new Vector2()
-			},
-			flatGrounded: false,
-			time: 0
+		//offspring.ResetScores();
+		while (Math.random() < simulator.mutability) {
+
 		}
-		offspring.frame = 0;
-		offspring.Normalize();
-		offspring._this = clone(offspring);
-		offspring.RunSimulation();
-		for (var key in offspring._this) {
-			if (key != "scores" && key != "_this") {
-				offspring[key] = offspring._this[key];
-			}
-		}
-		delete offspring._this;*/
 		return offspring;
 	}
 	GetFitness() {

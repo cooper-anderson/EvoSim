@@ -151,8 +151,8 @@
 				<input id="generationSlider" type="text" data-slider-min="0" data-slider-max="0" data-slider-step="1">
 			</div>
 		</div>
-		<div class="separator top"></div>
-		<div class="separator bottom"></div>
+		<!--div class="separator top"></div>
+		<div class="separator bottom"></div-->
 	</body>
 	<script>
 		$("#generationSlider").slider({
@@ -162,7 +162,7 @@
 			tooltip_position: "bottom"
 		});
 		var generationSlider = $("#generationSlider").slider("getAttribute")
-		$("#generationSlider").on("slide", function(slideEvt) {
+		$("#generationSlider").on("change", function(slideEvt) {
 			generationSlider = $("#generationSlider").slider("getAttribute")
 			$("#generationSliderVal").text(slideEvt.value);
 			updateCreatures();
