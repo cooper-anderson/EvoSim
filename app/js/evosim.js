@@ -7,23 +7,139 @@ const seedRandom = require("seedrandom");
 const sigma = require("sigma");
 const clone = require("clone");
 
+Math.clamp = function(number, min, max) {
+	if (number > max) {
+		return max;
+	} else if (number < min) {
+		return min;
+	} else {
+		return number;
+	}
+};
+
 var simulator = {
-	seed: 2757,//3438,
+	seed: 0,
 	objective: function(creature) {
-		//var size = Vector2.Sub(creature.scores.maxDistance.major, creature.scores.minDistance.minor);
-		if (creature.scores.maxDistance.mass.x > Math.abs(creature.scores.minDistance.mass.x)) {
-			return creature.scores.maxDistance.mass.x;
-		} else {
-			return creature.scores.minDistance.mass.x;
-		}
-		//return size.x * size.y;
-		//return creature.scores.maxDistance.mass.x;
+		//var size = Vector2.Sub(creature.scores.maxDistance.major, creature.scores.minDistance.minor);return size.x * size.y;
+		if (creature.scores.maxDistance.mass.x > Math.abs(creature.scores.minDistance.mass.x)) { return creature.scores.maxDistance.mass.x; } else { return creature.scores.minDistance.mass.x; }
+		//return creature.scores.maxDistance.minor.y;
 	},
 	mutability: .05,
+	mutationOptions: {
+		nodeFriction: {
+			weight: 5,
+			func: function(creature) {
+				let node = Math.floor(Math.random() * (creature.nodes.length-1));
+				let change = (Math.random() * .2) - .1;
+				creature.nodes[node].friction = Math.clamp(creature.nodes[node].friction + change, 0, 1);
+			}
+		},
+		nodeMass: {
+			weight: 0,
+			func: function(creature) {
+				let node = Math.floor(Math.random() * (creature.nodes.length-1));
+				let change = (Math.random() * .2) - .1;
+				creature.nodes[node].mass = Math.clamp(creature.nodes[node].mass + change, .1, 20);
+			}
+		},
+		nodeNew: {
+			weight: 1,
+			func: function(creature) {
+				if (creature.nodes.length < simulator.creature.node.maximum && creature.muscles.length < simulator.creature.muscle.maximum - 2) {
+					let node = new Node(new Vector2(Math.random(), Math.random()), Math.random(), Math.floor(Math.random() * 0) + 1, creature.nodes.length);
+					creature.nodes.push(node);
+					let attach = [0, 0];
+					while (attach[0] == attach[1]) {
+						attach[0] = Math.floor(Math.random() * (creature.nodes.length-1))
+						attach[1] = Math.floor(Math.random() * (creature.nodes.length-1))
+					}
+					attach[0] = creature.nodes[attach[0]];
+					attach[1] = creature.nodes[attach[1]];
+					for (let i = 0; i < 2; i++) {
+						let length = (Math.random() * 3) + .5;
+						creature.muscles.push(new Muscle(
+							[
+								node,
+								attach[i]
+							],
+							{
+								natural: length,
+								major: length * 1.5,
+								minor: length / 1.5
+							},
+							{
+								major: Math.floor(Math.random() * 25) + 50,
+								minor: Math.floor(Math.random() * 25) + 50
+							},
+							Math.random())
+						);
+					}
+				}
+			}
+		},
+		nodeKill: {
+			weight: 1,
+			func: function(creature) {
+				if (creature.nodes.length > simulator.creature.node.minimum) {
+					let node = Math.floor(Math.random() * (creature.nodes.length-1));
+					for (let muscle in creature.muscles) {
+						if (creature.muscles[muscle].nodes.includes(node)) {
+							creature.muscles.splice(muscle, 1);
+						}
+					}
+				}
+			}
+		},
+		muscleLength: {
+			weight: 5,
+			func: function(creature) {
+				let muscle = Math.floor(Math.random() * (creature.muscles.length-1));
+				let change = (Math.random() * .2) - .1;
+				creature.muscles[muscle].length.natural = Math.clamp(creature.muscles[muscle].length.natural + change, .5, 3.5);
+				creature.muscles[muscle].length.major = creature.muscles[muscle].length.natural * 1.5;
+				creature.muscles[muscle].length.minor = creature.muscles[muscle].length.natural / 1.5;
+			}
+		},
+		muscleRigidity: {
+			weight: 5,
+			func: function(creature) {
+				let muscle = Math.floor(Math.random() * (creature.muscles.length - 1));
+				let change = (Math.random() * .2) - .1;
+				creature.muscles[muscle].rigidity = Math.clamp(creature.muscles[muscle].rigidity + change, 0, 1);
+			}
+		},
+		musclePeriodMinor: {
+			weight: 4,
+			func: function(creature) {
+				let muscle = Math.floor(Math.random() * (creature.muscles.length-1));
+				let change = Math.floor(Math.random() * 2) - 1;
+				let period = ["major", "minor"][Math.round(Math.random())];
+				creature.muscles[muscle].period[period] = Math.clamp(creature.muscles[muscle].period[period] + change, 50, 75);
+			}
+		},
+		muscleNew: {
+			weight: 1,
+			func: function(creature) {
+				if (creature.muscles.length < simulator.creature.muscle.maximum && creature.muscles.length < (creature.nodes.length * (creature.nodes.length - 1)) / 2) {
+					creature.AddMuscle();
+				}
+			}
+		},
+		muscleKill: {
+			weight: 1,
+			func: function(creature) {
+				if (creature.muscles.length > simulator.creature.muscle.minimum) {
+					creature.RemoveMuscle();
+					creature.NormalizeNodes();
+				}
+			}
+		}
+	},
+	mutations: [],
 	creature: {
 		count: 1000,
-		node: {scale: 15, minimum: 3, maximum: 6},
-		muscle: {scale: 10, minimum: 3, maximum: 12}
+		node: {scale: 15, minimum: 3, maximum: 5},
+		muscle: {scale: 10, minimum: 3, maximum: 6}
 	},
 	cosmetic: {
 		//drawGrid: true,
@@ -43,6 +159,12 @@ var simulator = {
 	frameRate: 60,
 	species : "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
 };
+
+for (var mutation in simulator.mutationOptions) {
+	for (var i = 0; i < simulator.mutationOptions[mutation].weight; i++) {
+		simulator.mutations.push(simulator.mutationOptions[mutation].func);
+	}
+}
 
 class Color {
 	constructor(a=0, b=0, c=0, mode="rgb") {
@@ -67,6 +189,18 @@ class Color {
 		} else {
 
 		}
+	}
+}
+
+function getMusclePairs(creature) {
+	if (creature instanceof Creature) {
+		let pairs = []
+		for (let muscle in creature.muscles) {
+			pairs.push(Math.min(creature.muscles[muscle].nodes[0].id, creature.muscles[muscle].nodes[1].id) + '-' + Math.max(creature.muscles[muscle].nodes[0].id, creature.muscles[muscle].nodes[1].id));
+		}
+		return pairs;
+	} else {
+		return [Math.min(creature[0], creature[1]) + '-' + Math.max(creature[0], creature[1])];
 	}
 }
 
@@ -233,6 +367,7 @@ class Creature {
 			this.ancestor = this.id;
 			this.nodes = [];
 			this.muscles = [];
+			this.maxMuscleLength = 0;
 			this.muscleAction = Math.round(Math.random());
 			this.data = {centerOfMass: new Vector2(), maxPosition: new Vector2(), minPosition: new Vector2(), mass: 0, grounded: false, flatGrounded: false};
 			this.scores = {
@@ -250,39 +385,12 @@ class Creature {
 				time: 0
 			};
 			this.frame = 0;
-			for (var node = 0; node < Math.floor(Math.random() * (simulator.creature.node.maximum - simulator.creature.node.minimum)) + simulator.creature.node.minimum; node++) {
+			for (var node = 0; node < Math.floor(Math.random() * ((simulator.creature.node.maximum + 1) - simulator.creature.node.minimum)) + simulator.creature.node.minimum; node++) {
 				this.nodes.push(new Node(new Vector2(Math.random(), Math.random()), Math.random(), Math.floor(Math.random() * 0) + 1, node));
 			}
-			var maxMuscleLength = 0;
-			for (var muscle = 0; muscle < this.nodes.length; muscle++) {
-				var length = (Math.random() * 3)+.5;
-				this.muscles.push(new Muscle(
-					[
-						this.nodes[muscle],
-						this.nodes[(muscle+1) % this.nodes.length]
-					],
-					{
-						natural: length,
-						major: length * 1.5,
-						minor: length / 1.5
-					},
-					{
-						major: Math.floor(Math.random() * 25) + 50,
-						minor: Math.floor(Math.random() * 25) + 50
-					},
-					Math.random())
-				);
-				maxMuscleLength += length * 1.5 / 2;
-			}
-			this.maxMuscleLength = maxMuscleLength;
-			for (var muscle = 0; muscle < (this.nodes.length*(this.nodes.length-1)/2) - this.muscles.length; muscle++) {
-				var node1 = Math.floor(Math.random()*this.nodes.length);
-				var node2 = Math.floor(Math.random()*this.nodes.length);
-				while (node1 == node2) {
-					node1 = Math.floor(Math.random()*this.nodes.length);
-					node2 = Math.floor(Math.random()*this.nodes.length);
-				}
-				//this.muscles.push(new Muscle([this.nodes[node1], this.nodes[node2]], {length: 1, minor: .5, major: 1.5}, {}, Math.random()));
+			let maxMuscles = (this.nodes.length * (this.nodes.length - 1)) / 2;
+			for (var muscle = 0; muscle < Math.clamp(Math.floor((maxMuscles - this.nodes.length) * Math.random()) + this.nodes.length, simulator.creature.muscle.minimum, simulator.creature.muscle.maximum); muscle++) {
+				this.AddMuscle();
 			}
 			this.species = simulator.species[this.nodes.length - 1] + this.muscles.length;
 			this._this = clone(this);
@@ -297,6 +405,61 @@ class Creature {
 		} else {
 
 		}
+	}
+	/*AddNode() {
+	}
+	RemoveNode() {
+	}
+	NormalizeMuscles() {
+	}*/
+	NormalizeNodes() {
+		for (let node in this.nodes) {
+			let included = []
+			for (let muscle in this.muscles) {
+				included.push(this.muscles[muscle].nodes.includes(this.nodes[node]));
+			}
+			if (!included.includes(true)) {
+				this.nodes.splice(node, 1);
+			}
+		}
+	}
+	AddMuscle() {
+		let length = (Math.random() * 3)+.5;
+		let nodes = [-1, -1];
+		function MuscleExists(creature, nodes) {
+			let values = []
+			for (let muscle in creature.muscles) {
+				let ids = [creature.muscles[muscle].nodes[0].id, creature.muscles[muscle].nodes[1].id];
+				values.push(ids.includes(nodes[0]) && ids.includes(nodes[1]));
+			}
+			return values.includes(true);
+		}
+		while (nodes[0] == nodes[1] || MuscleExists(this, nodes)) {
+			nodes = [Math.floor(Math.random() * (this.nodes.length-0)), Math.floor(Math.random() * (this.nodes.length-0))];
+		}
+		nodes = ([this.nodes[clone(nodes[0])], this.nodes[clone(nodes[1])]]);
+		this.muscles.push(new Muscle(
+			[
+				nodes[0],
+				nodes[1]
+			],
+			{
+				natural: length,
+				major: length * 1.5,
+				minor: length / 1.5
+			},
+			{
+				major: Math.floor(Math.random() * 25) + 50,
+				minor: Math.floor(Math.random() * 25) + 50
+			},
+			Math.random())
+		);
+		this.maxMuscleLength += length * 1.5 / 2;
+	}
+
+	RemoveMuscle() {
+		let muscle = (Math.random() * this.muscles.length);
+		this.muscles.splice(muscle, 1);
 	}
 
     /**
@@ -460,13 +623,15 @@ class Creature {
 		for (var node in this.nodes) {
 			data.mass += this.nodes[node].mass;
 			data.centerOfMass = Vector2.Add(data.centerOfMass, Vector2.Mult(this.nodes[node].position, this.nodes[node].mass));
-			data.maxPosition = Vector2.Add(data.maxPosition, Vector2.Mult(this.nodes[node].position, this.nodes[node].mass));
-			data.minPosition = Vector2.Add(data.minPosition, Vector2.Mult(this.nodes[node].position, this.nodes[node].mass));
+			//data.maxPosition = Vector2.Add(data.maxPosition, Vector2.Mult(this.nodes[node].position, this.nodes[node].mass));
+			//data.minPosition = Vector2.Add(data.minPosition, Vector2.Mult(this.nodes[node].position, this.nodes[node].mass));
 			groundStatus[node] = (this.nodes[node].position.y > -.01 && this.nodes[node].position.y < .01) ? true : false;
 		}
 		data.centerOfMass = Vector2.Div(data.centerOfMass, data.mass);
-		data.maxPosition = Vector2.Div(data.maxPosition, data.mass);
-		data.minPosition = Vector2.Div(data.minPosition, data.mass);
+		data.maxPosition = clone(data.centerOfMass);
+		data.minPosition = clone(data.centerOfMass);
+		//data.maxPosition = Vector2.Div(data.maxPosition, data.mass);
+		//data.minPosition = Vector2.Div(data.minPosition, data.mass);
 		data.grounded = groundStatus.includes(true); data.flatGrounded = !groundStatus.includes(false);
 		for (var node in this.nodes) {
 			if (this.nodes[node].position.x > data.maxPosition.x) {
@@ -673,10 +838,21 @@ class Creature {
 	Reproduce() {
 		var offspring = clone(this);
 		offspring.id = simulator.creatures.push(offspring)-1;
-		//offspring.ResetScores();
+		offspring.ResetScores();
 		while (Math.random() < simulator.mutability) {
-
+			let mutation = Math.floor(Math.random() * (simulator.mutations.length-1));
+			simulator.mutations[mutation](offspring);
 		}
+		offspring.species = simulator.species[offspring.nodes.length - 1] + offspring.muscles.length;
+		offspring._this = clone(offspring);
+		offspring.Normalize();
+		offspring.RunSimulation();
+		for (var key in offspring._this) {
+			if (key != "scores" && key != "_this") {
+				offspring[key] = offspring._this[key];
+			}
+		}
+		delete offspring._this;
 		return offspring;
 	}
 

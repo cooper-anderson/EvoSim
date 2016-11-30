@@ -2,6 +2,18 @@
  * Created by Cooper Anderson on 11/6/16 AD.
  */
 
+function getSpecies() {
+	let series = []
+	for (let nodeCount = simulator.creature.node.minimum; nodeCount <= simulator.creature.node.maximum; nodeCount++) {
+		for (let muscleCount = nodeCount; muscleCount <= (nodeCount * (nodeCount - 1)) / 2; muscleCount++) {
+			if (muscleCount <= simulator.creature.muscle.maximum) {
+				series.push({name: simulator.species[nodeCount-1] + muscleCount, data: [0], visible: false})
+			}
+		}
+	}
+	return series;
+}
+
 $(function () {
 	$("#diversityGraph").highcharts({
 		chart: {
@@ -51,11 +63,32 @@ $(function () {
 				animationLimit: 50
 			}
 		},
-		series: []
+		series: getSpecies()/*{
+			name: "C3",
+			data: [0]
+		}, {
+			name: "D4",
+			data: [0]
+		}, {
+			name: "D5",
+			data: [0]
+		}, {
+			name: "D6",
+			data: [0]
+		}, {
+			name: "E5",
+			data: [0]
+		}, {
+			name: "E6",
+			data: [0]
+		}*/
 	});
 });
 $(function () {
 	$("#fitnessGraph").highcharts({
+		chart: {
+			zoomType: 'x'
+		},
 		title: {
 			text: 'Fitness',
 			enabled: false
@@ -165,7 +198,8 @@ $(function() {
 	$("#historyGraph").highcharts({
 		chart: {
 			type: 'column',
-			animation: false
+			animation: false,
+			zoomType: 'x'
 		},
 		title: {
 			text: "Histogram"
@@ -238,6 +272,9 @@ $("#run").on("click", function(event) {
 
 $("#loop").on("click", function(event) {
 	cont = !cont;
+	if (cont == true) {
+		create();
+	}
 	generationSlider.enabled = !generationSlider.enabled;
 	$("#generationSlider").slider("refresh");
 	$("#loop").toggleClass("active");
@@ -508,7 +545,10 @@ function updateCreatures() {
 		}
 		histogram.series[0].remove();
 		histogram.axes[0].categories = history.fitness;
-		histogram.addSeries({name: "Creatures", data: history.count, animation: false, color: "#2b908f"});
+		let series = histogram.addSeries({name: "Creatures", data: history.count, animation: false, color: "#2b908f"});
+		/*for (let i in history.count) {
+			series.addPoint([history.fitness[i], history.count[i]]);
+		}*/
 		histogram.render();
 		histogram.axes[0].plotLinesAndBands[0].options.value = history.fitness.findIndex(function(item, index, array) {
 			if (array.length == 1) {
@@ -536,15 +576,18 @@ function create() {
 	for (var series in diversity.series) {
 		if (diversity.series[series].name in g.species) {
 			var key = diversity.series[series].name;
+			if (getSeries(diversity, key).data[getSeries(diversity, key).data.length-1].y == 0) {
+				getSeries(diversity, key).setVisible(true);
+			}
 			getSeries(diversity, key).addPoint(g.species[key]);
 		} else {
 			diversity.series[series].addPoint(0);
 		}
 	}
 	fitness.series[0].addPoint(Number(g.creatures[0].GetFitness().toFixed(2)));
-	fitness.series[1].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .75)].GetFitness().toFixed(2)));
+	fitness.series[1].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .25)].GetFitness().toFixed(2)));
 	fitness.series[2].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .5)].GetFitness().toFixed(2)));
-	fitness.series[3].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .25)].GetFitness().toFixed(2)));
+	fitness.series[3].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .75)].GetFitness().toFixed(2)));
 	fitness.series[4].addPoint(Number(g.creatures[simulator.creature.count - 1].GetFitness().toFixed(2)));
 	/*fitness.series[0].addPoint(Number(g.creatures[0].GetFitness().toFixed(2)));
 	fitness.series[1].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .1)].GetFitness().toFixed(2)));
@@ -563,6 +606,11 @@ function create() {
 	}
 	$("#generationSlider").slider("refresh");
 	updateCreatures();
+	if (cont) {
+		setTimeout(function() {
+			create();
+		}, 1000);
+	}
 }
 
 setInterval(function() {
@@ -572,8 +620,9 @@ setInterval(function() {
 	}
 });
 
-setInterval(function() {
+/*setInterval(function() {
 	if (cont) {
 		create();
 	}
-}, 1000);
+}, 1000);*/
+//create();
