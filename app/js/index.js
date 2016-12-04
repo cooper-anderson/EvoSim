@@ -563,54 +563,56 @@ function updateCreatures() {
 }
 
 function create() {
-	if (typeof g == "undefined") {
-		g = new Generation();
-	} else {
-		g = g.Reproduce();
-	}
-	for (var key in g.species) {
-		if (!getSeriesNames(diversity).includes(key)) {
-			diversity.addSeries({name: key, data: [0]});
-		}
-	}
-	for (var series in diversity.series) {
-		if (diversity.series[series].name in g.species) {
-			var key = diversity.series[series].name;
-			if (getSeries(diversity, key).data[getSeries(diversity, key).data.length-1].y == 0) {
-				getSeries(diversity, key).setVisible(true);
-			}
-			getSeries(diversity, key).addPoint(g.species[key]);
+	window.requestAnimationFrame(function(resolve, reject) {
+		if (typeof g == "undefined") {
+			g = new Generation();
 		} else {
-			diversity.series[series].addPoint(0);
+			g = g.Reproduce();
 		}
-	}
-	fitness.series[0].addPoint(Number(g.creatures[0].GetFitness().toFixed(2)));
-	fitness.series[1].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .25)].GetFitness().toFixed(2)));
-	fitness.series[2].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .5)].GetFitness().toFixed(2)));
-	fitness.series[3].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .75)].GetFitness().toFixed(2)));
-	fitness.series[4].addPoint(Number(g.creatures[simulator.creature.count - 1].GetFitness().toFixed(2)));
-	/*fitness.series[0].addPoint(Number(g.creatures[0].GetFitness().toFixed(2)));
-	fitness.series[1].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .1)].GetFitness().toFixed(2)));
-	fitness.series[2].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .2)].GetFitness().toFixed(2)));
-	fitness.series[3].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .3)].GetFitness().toFixed(2)));
-	fitness.series[4].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .4)].GetFitness().toFixed(2)));
-	fitness.series[5].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .5)].GetFitness().toFixed(2)));
-	fitness.series[6].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .6)].GetFitness().toFixed(2)));
-	fitness.series[7].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .7)].GetFitness().toFixed(2)));
-	fitness.series[8].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .8)].GetFitness().toFixed(2)));
-	fitness.series[9].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .9)].GetFitness().toFixed(2)));
-	fitness.series[10].addPoint(Number(g.creatures[simulator.creature.count - 1].GetFitness().toFixed(2)));*/
-	generationSlider.max++;
-	if (generationSlider.value == generationSlider.max - 1) {
-		generationSlider.value++;
-	}
-	$("#generationSlider").slider("refresh");
-	updateCreatures();
-	if (cont) {
-		setTimeout(function() {
-			create();
-		}, 1000);
-	}
+		for (var key in g.species) {
+			if (!getSeriesNames(diversity).includes(key)) {
+				diversity.addSeries({name: key, data: [0]});
+			}
+		}
+		for (var series in diversity.series) {
+			if (diversity.series[series].name in g.species) {
+				var key = diversity.series[series].name;
+				if (getSeries(diversity, key).data[getSeries(diversity, key).data.length - 1].y == 0) {
+					getSeries(diversity, key).setVisible(true);
+				}
+				getSeries(diversity, key).addPoint(g.species[key]);
+			} else {
+				diversity.series[series].addPoint(0);
+			}
+		}
+		fitness.series[0].addPoint(Number(g.creatures[0].GetFitness().toFixed(2)));
+		fitness.series[1].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .25)].GetFitness().toFixed(2)));
+		fitness.series[2].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .5)].GetFitness().toFixed(2)));
+		fitness.series[3].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .75)].GetFitness().toFixed(2)));
+		fitness.series[4].addPoint(Number(g.creatures[simulator.creature.count - 1].GetFitness().toFixed(2)));
+		/*fitness.series[0].addPoint(Number(g.creatures[0].GetFitness().toFixed(2)));
+		 fitness.series[1].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .1)].GetFitness().toFixed(2)));
+		 fitness.series[2].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .2)].GetFitness().toFixed(2)));
+		 fitness.series[3].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .3)].GetFitness().toFixed(2)));
+		 fitness.series[4].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .4)].GetFitness().toFixed(2)));
+		 fitness.series[5].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .5)].GetFitness().toFixed(2)));
+		 fitness.series[6].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .6)].GetFitness().toFixed(2)));
+		 fitness.series[7].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .7)].GetFitness().toFixed(2)));
+		 fitness.series[8].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .8)].GetFitness().toFixed(2)));
+		 fitness.series[9].addPoint(Number(g.creatures[Math.round(simulator.creature.count * .9)].GetFitness().toFixed(2)));
+		 fitness.series[10].addPoint(Number(g.creatures[simulator.creature.count - 1].GetFitness().toFixed(2)));*/
+		generationSlider.max++;
+		if (generationSlider.value == generationSlider.max - 1) {
+			generationSlider.value++;
+		}
+		$("#generationSlider").slider("refresh");
+		updateCreatures();
+		if (cont) {
+			setTimeout(function () {
+				create();
+			}, 1000);
+		}
+	});
 }
 
 setInterval(function() {
