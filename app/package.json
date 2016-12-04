@@ -1,7 +1,7 @@
 {
   "name": "evosim",
   "productName": "EvoSim",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "main": "js/main.js",
   "dependencies": {
     "highcharts": "latest",

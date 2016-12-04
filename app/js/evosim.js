@@ -18,7 +18,7 @@ Math.clamp = function(number, min, max) {
 };
 
 var simulator = {
-	seed: 0,
+	seed: /*0,// */1542,
 	objective: function(creature) {
 		//var size = Vector2.Sub(creature.scores.maxDistance.major, creature.scores.minDistance.minor);return size.x * size.y;
 		if (creature.scores.maxDistance.mass.x > Math.abs(creature.scores.minDistance.mass.x)) { return creature.scores.maxDistance.mass.x; } else { return creature.scores.minDistance.mass.x; }
