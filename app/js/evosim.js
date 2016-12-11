@@ -18,7 +18,7 @@ Math.clamp = function(number, min, max) {
 };
 
 var simulator = {
-	seed: /*0,// */1542,
+	seed: 0,//1542,
 	objective: function(creature) {
 		//var size = Vector2.Sub(creature.scores.maxDistance.major, creature.scores.minDistance.minor);return size.x * size.y;
 		if (creature.scores.maxDistance.mass.x > Math.abs(creature.scores.minDistance.mass.x)) { return creature.scores.maxDistance.mass.x; } else { return creature.scores.minDistance.mass.x; }
@@ -838,15 +838,19 @@ class Creature {
 	Reproduce() {
 		var offspring = clone(this);
 		offspring.id = simulator.creatures.push(offspring)-1;
-		offspring.ResetScores();
+		let needSimulation = false;
 		while (Math.random() < simulator.mutability) {
 			let mutation = Math.floor(Math.random() * (simulator.mutations.length-1));
 			simulator.mutations[mutation](offspring);
+			needSimulation = true;
 		}
 		offspring.species = simulator.species[offspring.nodes.length - 1] + offspring.muscles.length;
 		offspring._this = clone(offspring);
 		offspring.Normalize();
-		offspring.RunSimulation();
+		if (needSimulation) {
+			offspring.ResetScores();
+			offspring.RunSimulation();
+		}
 		for (var key in offspring._this) {
 			if (key != "scores" && key != "_this") {
 				offspring[key] = offspring._this[key];

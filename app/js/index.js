@@ -610,7 +610,7 @@ function create() {
 		if (cont) {
 			setTimeout(function () {
 				create();
-			}, 1000);
+			}, 500);
 		}
 	});
 }

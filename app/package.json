@@ -1,7 +1,7 @@
 {
   "name": "evosim",
   "productName": "EvoSim",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "main": "js/main.js",
   "dependencies": {
     "highcharts": "latest",
@@ -10,6 +10,9 @@
     "seedrandom": "latest",
 	"sigma": "latest",
 	"clone": "latest"
+  },
+  "scripts": {
+    "start": "/Applications/Electron.app/Contents/MacOS/Electron ./"
   },
   "repository": {
 	"type": "git",
