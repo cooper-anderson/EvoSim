@@ -18,7 +18,7 @@ Math.clamp = function(number, min, max) {
 };
 
 var simulator = {
-	seed: 0,//1542,
+	seed: 0,//1542,//4068
 	objective: function(creature) {
 		//var size = Vector2.Sub(creature.scores.maxDistance.major, creature.scores.minDistance.minor);return size.x * size.y;
 		if (creature.scores.maxDistance.mass.x > Math.abs(creature.scores.minDistance.mass.x)) { return creature.scores.maxDistance.mass.x; } else { return creature.scores.minDistance.mass.x; }
@@ -369,7 +369,7 @@ class Creature {
 			this.muscles = [];
 			this.maxMuscleLength = 0;
 			this.muscleAction = Math.round(Math.random());
-			this.data = {centerOfMass: new Vector2(), maxPosition: new Vector2(), minPosition: new Vector2(), mass: 0, grounded: false, flatGrounded: false};
+			/*this.data = {centerOfMass: new Vector2(), maxPosition: new Vector2(), minPosition: new Vector2(), mass: 0, grounded: false, flatGrounded: false};
 			this.scores = {
 				maxDistance: {
 					mass: new Vector2(),
@@ -383,7 +383,7 @@ class Creature {
 				},
 				flatGrounded: false,
 				time: 0
-			};
+			};*/
 			this.frame = 0;
 			for (var node = 0; node < Math.floor(Math.random() * ((simulator.creature.node.maximum + 1) - simulator.creature.node.minimum)) + simulator.creature.node.minimum; node++) {
 				this.nodes.push(new Node(new Vector2(Math.random(), Math.random()), Math.random(), Math.floor(Math.random() * 0) + 1, node));
@@ -394,6 +394,7 @@ class Creature {
 			}
 			this.species = simulator.species[this.nodes.length - 1] + this.muscles.length;
 			this._this = clone(this);
+			this.ResetScores();
 			this.Normalize();
 			this.RunSimulation();
 			for (var key in this._this) {
@@ -437,7 +438,7 @@ class Creature {
 		while (nodes[0] == nodes[1] || MuscleExists(this, nodes)) {
 			nodes = [Math.floor(Math.random() * (this.nodes.length-0)), Math.floor(Math.random() * (this.nodes.length-0))];
 		}
-		nodes = ([this.nodes[clone(nodes[0])], this.nodes[clone(nodes[1])]]);
+		nodes = ([this.nodes[/*clone(*/nodes[0]/*)*/], this.nodes[/*clone(*/nodes[1]/*)*/]]);
 		this.muscles.push(new Muscle(
 			[
 				nodes[0],
@@ -534,6 +535,9 @@ class Creature {
 	 */
 	ResetScores() {
 		this.data = {centerOfMass: new Vector2(), maxPosition: new Vector2(), minPosition: new Vector2(), mass: 0, grounded: false, flatGrounded: false};
+		for (let node in this.nodes) {
+			this.data.mass += this.nodes[node].mass;
+		}
 		this.scores = {
 			maxDistance: {
 				mass: new Vector2(),
@@ -618,6 +622,32 @@ class Creature {
 	 * @returns {{centerOfMass, maxPosition, minPosition, mass: number, grounded: boolean, flatGrounded: boolean}} The data of the creature
 	 */
 	GetData() {
+		var data = this.data;
+		data.centerOfMass = new Vector2();
+		var groundStatus = [];
+		for (var node in this.nodes) {
+			data.centerOfMass = Vector2.Add(data.centerOfMass, Vector2.Mult(this.nodes[node].position, this.nodes[node].mass));
+			if (this.nodes[node].position.x > data.maxPosition.x) {
+				data.maxPosition.x = this.nodes[node].position.x;
+			}
+			if (this.nodes[node].position.y > data.maxPosition.y) {
+				data.maxPosition.y = this.nodes[node].position.y;
+			}
+			if (this.nodes[node].position.x < data.minPosition.x) {
+				data.minPosition.x = this.nodes[node].position.x;
+			}
+			if (this.nodes[node].position.y < data.minPosition.y) {
+				data.minPosition.y = this.nodes[node].position.y;
+			}
+			groundStatus[node] = (this.nodes[node].position.y > -.01 && this.nodes[node].position.y < .01) ? true : false;
+		}
+		data.centerOfMass = Vector2.Div(data.centerOfMass, data.mass);
+		//data.maxPosition = Vector2.Div(data.maxPosition, data.mass);
+		//data.minPosition = Vector2.Div(data.minPosition, data.mass);
+		data.grounded = groundStatus.includes(true); data.flatGrounded = !groundStatus.includes(false);
+		return data;
+	}
+	/*GetData() {
 		var data = {centerOfMass: new Vector2(), maxPosition: new Vector2(), minPosition: new Vector2(), mass: 0, grounded: false, flatGrounded: false};
 		var groundStatus = [];
 		for (var node in this.nodes) {
@@ -648,7 +678,7 @@ class Creature {
 			}
 		}
 		return data;
-	}
+	}*/
 
 	/**
 	 * Sets the data variable of the creature to the creature's real data
@@ -846,8 +876,8 @@ class Creature {
 		}
 		offspring.species = simulator.species[offspring.nodes.length - 1] + offspring.muscles.length;
 		offspring._this = clone(offspring);
-		offspring.Normalize();
 		if (needSimulation) {
+			offspring.Normalize();
 			offspring.ResetScores();
 			offspring.RunSimulation();
 		}
@@ -908,7 +938,7 @@ class Generation {
 	Reproduce() {
 		var creatures = [];
 		for (var c = 0; c < simulator.creature.count / 2; c++) {
-			creatures.push(clone(this.creatures[c]));
+			creatures.push(/*clone(*/this.creatures[c]/*)*/);
 			creatures.push(this.creatures[c].Reproduce());
 		}
 		return new Generation(creatures);
