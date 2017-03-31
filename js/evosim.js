@@ -2,11 +2,6 @@
  * Created by Cooper Anderson on 11/8/16 AD.
  */
 
-const {Vector2} = require("./js/Vectors");
-const seedRandom = require("seedrandom");
-const sigma = require("sigma");
-const clone = require("clone");
-
 Math.clamp = function(number, min, max) {
 	if (number > max) {
 		return max;
