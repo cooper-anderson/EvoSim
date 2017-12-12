@@ -8,14 +8,14 @@
     "electron": "latest",
     "jquery": "latest",
     "seedrandom": "latest",
-	"sigma": "latest",
-	"clone": "latest"
+    "sigma": "latest",
+    "clone": "latest"
   },
   "scripts": {
-    "start": "/Applications/Electron.app/Contents/MacOS/Electron ./"
+    "start": "electron ."
   },
   "repository": {
-	"type": "git",
-	"url": "https://github.com/cooper-anderson/evosim.git"
+    "type": "git",
+    "url": "https://github.com/cooper-anderson/evosim.git"
   }
 }
