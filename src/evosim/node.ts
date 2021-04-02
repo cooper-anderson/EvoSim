@@ -1,6 +1,7 @@
 import Edge from "./edge";
 import Physics from "./physics";
 import Vector from "./vector";
+import {v4 as uuid} from "uuid";
 
 type NodeState = {
 	position: Vector;
@@ -9,7 +10,7 @@ type NodeState = {
 }
 
 export default class Node {
-	public id: Symbol;
+	public id: string;
 	public radius: number;
 	public mass: number;
 	public friction: number;
@@ -18,12 +19,12 @@ export default class Node {
 
 	public state?: NodeState;
 
-	constructor() {
-		this.id = Symbol("Node");
-		this.radius = 0;
+	constructor(radius: number, friction: number, position: Vector) {
+		this.id = uuid();
+		this.radius = radius;
 		this.mass = Math.PI * Math.pow(this.radius, 2);
-		this.friction = 0;
-		this.position = new Vector();
+		this.friction = friction;
+		this.position = position;
 		this.edges = new Set();
 	}
 
@@ -31,24 +32,38 @@ export default class Node {
 		const state = this.state;
 		if (!state) throw Error();
 
-		let force = Physics.gravity.clone();
+		let force = Vector.mult(Physics.gravity, this.mass * 10);
 		this.edges.forEach(edge => force.add(edge.getForce(this.id)));
 
-		if (state.position.y <= this.radius && state.velocity.y < 0) {
-			state.velocity.y = 0;
+		if (state.grounded) {
 			const friction = this.friction * Math.abs(force.y);
 			force.x -= friction * Math.sign(state.velocity.x);
-			force.y = 0;
 		}
 
 		return force.div(this.mass);
 	}
 
+	start() {
+		this.state = {
+			position: this.position.clone(),
+			velocity: new Vector(),
+			grounded: false
+		};
+	}
+
 	update(dt: number): void {
-		if (!this.state) throw Error();
+		let state = this.state;
+		if (!state) throw Error();
 
 		let acceleration = this.acceleration;
-		this.state.velocity.add(acceleration.over(dt));
-		this.state.position.add(this.state.velocity.over(dt));
+		state.velocity.add(acceleration.over(dt));
+		state.position.add(state.velocity.over(dt));
+
+		state.grounded = state.position.y < this.radius + 0.02;
+		if (state.position.y < this.radius) {
+			state.position.y = this.radius;
+			state.velocity.y = Math.max(0, state.velocity.y);
+		}
+		state.velocity.mult(0.97);
 	}
 }

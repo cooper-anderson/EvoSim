@@ -1,5 +1,7 @@
 import Vector from "./vector";
 
-export default {
+const physics = {
 	gravity: new Vector(0, -9.81)
-};
+}
+
+export default physics;
