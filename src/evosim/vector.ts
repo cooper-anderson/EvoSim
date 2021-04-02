@@ -77,4 +77,8 @@ export default class Vector {
 		if (divisor === 0) return Vector.zero.clone();
 		return new Vector(vector.x / divisor, vector.y / divisor);
 	}
+
+	static dist(a: Vector, b: Vector): number {
+		return Math.hypot(b.x - a.x, b.y - a.y);
+	}
 }
