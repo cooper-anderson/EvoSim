@@ -32,7 +32,7 @@ export default class Node {
 		const state = this.state;
 		if (!state) throw Error();
 
-		let force = Vector.mult(Physics.gravity, this.mass * 10);
+		let force = Physics.gravity;
 		this.edges.forEach(edge => force.add(edge.getForce(this.id)));
 
 		if (state.grounded) {
