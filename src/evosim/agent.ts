@@ -2,7 +2,7 @@ import Edge from "./edge";
 import Node from "./node";
 import Vector from "./vector";
 
-export default class Body {
+export default class Agent {
 	public nodes: Node[];
 	public edges: Edge[];
 	public center: Vector;
