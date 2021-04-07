@@ -1,3 +1,3 @@
-// use super::vector::Vector;
+use super::vector::Vector;
 
-// pub const GRAVITY: Vector = Vector::new(0.0, 0.0);
+pub const GRAVITY: Vector = Vector { x: 0.0, y: -9.81 };

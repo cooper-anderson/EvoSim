@@ -1,8 +1,23 @@
+use std::fmt::Display;
+
 #[derive(Clone, Copy, serde::Serialize)]
-pub struct Vector { x: f64, y: f64 }
+pub struct Vector { pub x: f64, pub y: f64 }
+
+impl Display for Vector {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		f.write_str(format!("<{}, {}>", self.x, self.y).as_str())
+	}
+}
 
 #[allow(dead_code)]
 impl Vector {
+	pub const ZERO: Vector = Vector { x: 0.0, y: 0.0 };
+	pub const ONE: Vector = Vector { x: 1.0, y: 1.0 };
+	pub const UP: Vector = Vector { x: 0.0, y: 1.0 };
+	pub const DOWN: Vector = Vector { x: 0.0, y: -1.0 };
+	pub const LEFT: Vector = Vector { x: -1.0, y: 0.0 };
+	pub const RIGHT: Vector = Vector { x: 1.0, y: 0.0 };
+
 	pub fn new(x: f64, y: f64) -> Self { Vector { x, y } }
 	pub fn blank() -> Self { Vector { x: 0.0, y: 0.0 } }
 
